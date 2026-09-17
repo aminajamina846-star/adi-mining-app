@@ -4,27 +4,49 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ADI$ Airdrop App</title>
-  
+
   <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <style>
+    :root {
+      --bg-color: #0b0f17;
+      --card-bg: rgba(23, 31, 45, 0.7);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --text-main: #ffffff;
+      --text-sub: #9ca3af;
+      --accent-silver: #e2e8f0;
+      --accent-glow: #cbd5e1;
+      --green-glow: #10b981;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Courier New', Courier, monospace;
+      font-family: 'Plus Jakarta Sans', sans-serif;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
 
     body {
-      background-color: #fdf6e2;
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(226, 232, 240, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(226, 232, 240, 0.03) 0%, transparent 20%);
       display: flex;
       justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
-      color: #000;
+      color: var(--text-main);
       padding-bottom: 90px;
     }
 
@@ -34,154 +56,188 @@
       padding: 16px;
     }
 
+    /* Page View Handling */
+    .page { display: none; }
+    .page.active { 
+      display: block; 
+      animation: fadeIn 0.3s ease-in-out; 
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     /* Top Profile Bar */
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .profile-info {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .avatar {
-      width: 45px;
-      height: 45px;
-      background-color: #fca5a5;
-      border: 2.5px solid #000;
+      width: 46px;
+      height: 46px;
+      background: linear-gradient(135deg, #e2e8f0 0%, #475569 100%);
+      color: #0f172a;
       border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-weight: bold;
-      box-shadow: 2px 2px 0px #000;
+      font-weight: 800;
+      font-size: 18px;
+      box-shadow: 0 0 15px rgba(226, 232, 240, 0.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
     }
 
     .user-details h3 {
-      font-size: 16px;
-      font-weight: 900;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
     }
 
     .user-details p {
       font-size: 11px;
-      color: #555;
-      font-weight: bold;
+      color: var(--text-sub);
+      font-weight: 600;
+      margin-top: 2px;
     }
 
     .icon-btn {
-      width: 40px;
-      height: 40px;
-      background: #fff;
-      border: 2.5px solid #000;
-      border-radius: 10px;
+      width: 42px;
+      height: 42px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-shadow: 3px 3px 0px #000;
-      font-weight: bold;
+      color: var(--text-main);
+      font-size: 16px;
       cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
     }
 
-    .icon-btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0px #000;
-    }
+    .icon-btn:active { transform: scale(0.95); }
 
-    /* Neo-Brutalist Base Cards */
+    /* Glass Cards */
     .card {
-      background-color: #fff;
-      border: 3px solid #000;
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: 4px 4px 0px #000;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 20px;
       margin-bottom: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
-    .bg-yellow { background-color: #fcd535; }
-    .bg-green { background-color: #84cc16; }
-    .bg-pink { background-color: #f472b6; }
-    .bg-cyan { background-color: #2dd4bf; }
+    .card-silver {
+      background: linear-gradient(135deg, rgba(226, 232, 240, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%);
+      border: 1px solid rgba(226, 232, 240, 0.25);
+    }
 
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
 
     .card-label {
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 700;
       letter-spacing: 1px;
+      color: var(--text-sub);
+      text-transform: uppercase;
     }
 
     .tag-btn {
-      background: #fff;
-      border: 2px solid #000;
-      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--accent-silver);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 5px 12px;
       border-radius: 20px;
       font-size: 10px;
-      font-weight: bold;
-      box-shadow: 2px 2px 0px #000;
+      font-weight: 700;
       cursor: pointer;
+      transition: 0.2s;
     }
 
-    .tag-btn:active {
-      transform: translate(1px, 1px);
-      box-shadow: 1px 1px 0px #000;
-    }
+    .tag-btn:active { transform: scale(0.95); }
 
     .balance-val {
-      font-size: 34px;
-      font-weight: 900;
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
     }
 
     .balance-val span {
-      font-size: 16px;
+      font-size: 18px;
+      color: var(--accent-silver);
+      font-weight: 600;
     }
 
     .sub-value {
       font-size: 13px;
-      font-weight: bold;
-      margin-bottom: 16px;
+      font-weight: 600;
+      color: var(--green-glow);
+      margin-top: 4px;
+      margin-bottom: 18px;
     }
 
-    /* Action Buttons */
+    /* Modern Metallic Buttons */
     .btn-row {
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
 
     .btn {
       flex: 1;
-      padding: 12px;
-      border: 2.5px solid #000;
-      border-radius: 10px;
-      font-weight: 800;
+      padding: 13px;
+      border-radius: 12px;
+      font-weight: 700;
       font-size: 12px;
       cursor: pointer;
-      box-shadow: 3px 3px 0px #000;
       text-align: center;
+      border: none;
       outline: none;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
     }
 
-    .btn:active {
-      transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0px #000;
+    .btn-metallic {
+      background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+      color: #0f172a;
+      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15);
     }
 
-    .btn-cyan { background-color: #2dd4bf; }
-    .btn-white { background-color: #ffffff; }
+    .btn-dark {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn:active { transform: scale(0.97); }
 
     .section-title {
       font-size: 12px;
-      font-weight: 900;
-      margin: 16px 0 10px 0;
-      letter-spacing: 0.5px;
+      font-weight: 800;
+      margin: 20px 0 12px 0;
+      letter-spacing: 1px;
+      color: var(--text-sub);
+      text-transform: uppercase;
     }
 
     /* Grid Items */
@@ -193,64 +249,72 @@
     }
 
     .grid-item {
-      border: 2.5px solid #000;
-      border-radius: 12px;
-      padding: 14px 4px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px 6px;
       text-align: center;
-      font-size: 10px;
-      font-weight: 900;
-      box-shadow: 3px 3px 0px #000;
       cursor: pointer;
+      transition: 0.2s;
     }
 
-    .grid-item:active {
-      transform: translate(2px, 2px);
-      box-shadow: 1px 1px 0px #000;
+    .grid-item i {
+      font-size: 18px;
+      color: var(--accent-silver);
+      margin-bottom: 6px;
+      display: block;
     }
 
-    /* Market Items */
+    .grid-item span {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .grid-item:active { transform: scale(0.95); }
+
+    /* Market List Items */
     .market-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
-      border-bottom: 2px solid #000;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
 
-    .market-item:last-child {
-      border-bottom: none;
-    }
+    .market-item:last-child { border-bottom: none; }
 
     .coin-info {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .coin-icon {
-      width: 32px;
-      height: 32px;
-      border: 2px solid #000;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
-      background: #fcd535;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
       display: flex;
       justify-content: center;
       align-items: center;
-      font-weight: bold;
-      font-size: 11px;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--accent-silver);
     }
 
     .price-badge {
-      background: #84cc16;
-      border: 1.5px solid #000;
-      padding: 2px 6px;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--green-glow);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 3px 8px;
       border-radius: 6px;
       font-size: 10px;
-      font-weight: bold;
-      box-shadow: 1.5px 1.5px 0px #000;
+      font-weight: 700;
     }
 
-    /* Bottom Navigation */
+    /* Bottom Navigation Bar */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -258,32 +322,36 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: 420px;
-      background: #fff;
-      border-top: 3px solid #000;
+      background: rgba(11, 15, 23, 0.85);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--card-border);
       display: flex;
       justify-content: space-around;
-      padding: 8px 0;
-      box-shadow: 0 -4px 0px rgba(0,0,0,0.05);
+      padding: 10px 0;
       z-index: 999;
     }
 
     .nav-item {
       text-align: center;
-      font-size: 9px;
-      font-weight: 800;
+      font-size: 10px;
+      font-weight: 700;
       cursor: pointer;
+      color: var(--text-sub);
       padding: 6px 12px;
-      border-radius: 8px;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
     }
 
-    .nav-item:active {
-      transform: scale(0.95);
-    }
+    .nav-item i { font-size: 16px; }
 
     .nav-item.active {
-      background: #fcd535;
-      border: 2px solid #000;
-      box-shadow: 2px 2px 0px #000;
+      color: #0f172a;
+      background: var(--accent-silver);
+      box-shadow: 0 0 12px rgba(226, 232, 240, 0.3);
     }
   </style>
 </head>
@@ -291,139 +359,258 @@
 
   <div class="app-container">
     
+    <!-- Header Area -->
     <div class="top-bar">
       <div class="profile-info">
-        <div class="avatar" id="userAvatar">$</div>
+        <div class="avatar" id="userAvatar"><i class="fa-solid fa-user"></i></div>
         <div class="user-details">
-          <h3 id="userName">adi_modaretor</h3>
-          <p>LV2 • MINER</p>
+          <h3 id="userName">User</h3>
+          <p id="userLevel"><i class="fa-solid fa-shield-halved" style="color: var(--accent-silver);"></i> Verified Miner</p>
         </div>
       </div>
-      <div class="icon-btn" onclick="triggerAction('Notifications')">🔔</div>
+      <div class="icon-btn" onclick="showAlert('No new notifications')"><i class="fa-regular fa-bell"></i></div>
     </div>
 
-    <div class="card bg-yellow">
-      <div class="card-header">
-        <span class="card-label">TOTAL BALANCE</span>
-        <button class="tag-btn" onclick="triggerAction('History')">HISTORY ></button>
+    <!-- HOME PAGE -->
+    <div id="page-home" class="page active">
+      <div class="card card-silver">
+        <div class="card-header">
+          <span class="card-label">Total Balance</span>
+          <button class="tag-btn" onclick="showAlert('History Feature Coming Soon')">History <i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="balance-val" id="totalBalance">0 <span>ADI$</span></div>
+        <div class="sub-value" id="usdValue">≈ $0.00 USD</div>
+        <div class="btn-row">
+          <button class="btn btn-metallic" onclick="showAlert('Exchange Portal Opening Soon')"><i class="fa-solid fa-arrow-right-arrow-left"></i> Exchange</button>
+          <button class="btn btn-dark" onclick="switchTab('page-profile')"><i class="fa-solid fa-wallet"></i> Wallet</button>
+        </div>
       </div>
-      <div class="balance-val" id="totalBalance">98,227 <span>ADI$</span></div>
-      <div class="sub-value">≈ $7.94</div>
-      <div class="btn-row">
-        <button class="btn btn-cyan" onclick="triggerAction('Exchange')">EXCHANGE</button>
-        <button class="btn btn-white" onclick="triggerAction('Transfer')">TRANSFER</button>
-      </div>
-    </div>
 
-    <div class="card bg-pink" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px;">
-      <div>
-        <div style="font-size: 10px; font-weight: 800;">DAILY REWARD READY</div>
-        <div style="font-size: 11px; font-weight: bold; margin-top: 2px;">+1,000 ADI$ • day 10</div>
+      <!-- Daily Reward Card -->
+      <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-sub);">DAILY REWARD</div>
+          <div style="font-size: 13px; font-weight: 800; margin-top: 2px;">+1,000 ADI$ Token</div>
+        </div>
+        <button class="btn btn-metallic" id="claimBtn" style="padding: 8px 16px; flex: initial; font-size: 11px;" onclick="claimDailyReward()">Claim</button>
       </div>
-      <button class="btn" id="claimBtn" style="background:#fcd535; padding: 6px 14px; flex: initial;" onclick="claimReward()">CLAIM</button>
-    </div>
 
-    <div class="section-title">QUICK ACTIONS</div>
-    <div class="grid-4">
-      <div class="grid-item bg-green" onclick="triggerAction('Mining')">MINING</div>
-      <div class="grid-item bg-yellow" onclick="triggerAction('Boost')">BOOST</div>
-      <div class="grid-item bg-pink" onclick="triggerAction('Tasks')">TASKS</div>
-      <div class="grid-item bg-cyan" onclick="triggerAction('Exchange')">EXCHANGE</div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <span class="card-label">MARKET</span>
-        <button class="tag-btn" onclick="triggerAction('All Markets')">ALL MARKETS ></button>
+      <div class="section-title">Quick Actions</div>
+      <div class="grid-4">
+        <div class="grid-item" onclick="switchTab('page-mine')">
+          <i class="fa-solid fa-pickaxe"></i>
+          <span>Mining</span>
+        </div>
+        <div class="grid-item" onclick="showAlert('Speed Booster Active!')">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Boost</span>
+        </div>
+        <div class="grid-item" onclick="switchTab('page-tasks')">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Tasks</span>
+        </div>
+        <div class="grid-item" onclick="switchTab('page-markets')">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Markets</span>
+        </div>
       </div>
-      
-      <div class="market-item">
-        <div class="coin-info">
-          <div class="coin-icon">ADI$</div>
-          <div>
-            <strong style="font-size: 12px;">ADI$</strong>
-            <div style="font-size: 10px; color: #666;">ADI Token</div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">Market Overview</span>
+          <button class="tag-btn" onclick="switchTab('page-markets')">View All</button>
+        </div>
+        
+        <div class="market-item">
+          <div class="coin-info">
+            <div class="coin-icon">ADI$</div>
+            <div>
+              <strong style="font-size: 13px; display: block;">ADI$ Token</strong>
+              <span style="font-size: 10px; color: var(--text-sub);">Native Token</span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 13px; font-weight: 700;">$0.000100</div>
+            <span class="price-badge">+0.00%</span>
           </div>
         </div>
-        <div style="text-align: right;">
-          <div style="font-size: 12px; font-weight: bold;">$0.00008333</div>
-          <span class="price-badge">+0.00%</span>
-        </div>
-      </div>
 
-      <div class="market-item">
-        <div class="coin-info">
-          <div class="coin-icon" style="background: #f97316; color: #fff;">₿</div>
-          <div>
-            <strong style="font-size: 12px;">BTC</strong>
-            <div style="font-size: 10px; color: #666;">Bitcoin</div>
+        <div class="market-item">
+          <div class="coin-info">
+            <div class="coin-icon"><i class="fa-brands fa-bitcoin"></i></div>
+            <div>
+              <strong style="font-size: 13px; display: block;">Bitcoin</strong>
+              <span style="font-size: 10px; color: var(--text-sub);">BTC</span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 13px; font-weight: 700;">$76,863.98</div>
+            <span class="price-badge">+1.56%</span>
           </div>
         </div>
-        <div style="text-align: right;">
-          <div style="font-size: 12px; font-weight: bold;">$76,863.98</div>
-          <span class="price-badge">+1.56%</span>
+      </div>
+    </div>
+
+    <!-- MINE PAGE -->
+    <div id="page-mine" class="page">
+      <div class="card card-silver" style="text-align: center; padding: 35px 20px;">
+        <i class="fa-solid fa-cube" style="font-size: 40px; color: var(--accent-silver); margin-bottom: 15px;"></i>
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Mining Protocol</h2>
+        <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 24px;">Tap below to initialize block mining and claim tokens.</p>
+        <button class="btn btn-metallic" style="width: 100%; padding: 16px; font-size: 13px;" onclick="startMining()"><i class="fa-solid fa-play"></i> Start Mining (+500 ADI$)</button>
+      </div>
+    </div>
+
+    <!-- MARKETS PAGE -->
+    <div id="page-markets" class="page">
+      <div class="card">
+        <div class="section-title" style="margin-top: 0;">Live Market Metrics</div>
+        <div class="market-item">
+          <div class="coin-info"><div class="coin-icon">ADI$</div><div><strong>ADI$ Token</strong></div></div>
+          <div><strong>$0.000100</strong></div>
         </div>
+        <div class="market-item">
+          <div class="coin-info"><div class="coin-icon"><i class="fa-brands fa-bitcoin"></i></div><div><strong>Bitcoin</strong></div></div>
+          <div><strong>$76,863.98</strong></div>
+        </div>
+        <div class="market-item">
+          <div class="coin-info"><div class="coin-icon"><i class="fa-brands fa-ethereum"></i></div><div><strong>Ethereum</strong></div></div>
+          <div><strong>$3,420.50</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS PAGE -->
+    <div id="page-tasks" class="page">
+      <div class="card">
+        <div class="section-title" style="margin-top: 0;">Available Missions</div>
+        <div class="market-item">
+          <div>
+            <strong style="font-size: 13px; display: block;">Join Telegram Channel</strong>
+            <span style="font-size: 11px; color: var(--green-glow); font-weight: 600;">+2,000 ADI$</span>
+          </div>
+          <button class="btn btn-metallic" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="completeTask(2000, this)">Start</button>
+        </div>
+        <div class="market-item">
+          <div>
+            <strong style="font-size: 13px; display: block;">Subscribe YouTube Channel</strong>
+            <span style="font-size: 11px; color: var(--green-glow); font-weight: 600;">+3,000 ADI$</span>
+          </div>
+          <button class="btn btn-metallic" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="completeTask(3000, this)">Start</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE PAGE -->
+    <div id="page-profile" class="page">
+      <div class="card card-silver">
+        <div class="section-title" style="margin-top: 0;">Account Verification</div>
+        <div style="font-size: 13px; line-height: 2;">
+          <p><strong>Username:</strong> <span id="profUser" style="color: var(--text-sub);">Loading...</span></p>
+          <p><strong>Telegram ID:</strong> <span id="profId" style="color: var(--text-sub);">...</span></p>
+          <p><strong>Current Balance:</strong> <span id="profBalance" style="color: var(--green-glow); font-weight: 800;">0 ADI$</span></p>
+        </div>
+        <button class="btn btn-metallic" style="width: 100%; margin-top: 20px;" onclick="showAlert('TON Wallet Integration Coming Soon!')"><i class="fa-solid fa-link"></i> Connect TON Wallet</button>
       </div>
     </div>
 
   </div>
 
+  <!-- Bottom Navigation -->
   <div class="bottom-nav">
-    <div class="nav-item active" onclick="switchNav(this, 'Home')">🏠<br>HOME</div>
-    <div class="nav-item" onclick="switchNav(this, 'Mine')">⛏️<br>MINE</div>
-    <div class="nav-item" onclick="switchNav(this, 'Markets')">📊<br>MARKETS</div>
-    <div class="nav-item" onclick="switchNav(this, 'Tasks')">🎯<br>TASKS</div>
-    <div class="nav-item" onclick="switchNav(this, 'Profile')">👤<br>PROFILE</div>
+    <div class="nav-item active" onclick="switchTab('page-home', this)"><i class="fa-solid fa-house"></i><span>Home</span></div>
+    <div class="nav-item" onclick="switchTab('page-mine', this)"><i class="fa-solid fa-pickaxe"></i><span>Mine</span></div>
+    <div class="nav-item" onclick="switchTab('page-markets', this)"><i class="fa-solid fa-chart-simple"></i><span>Markets</span></div>
+    <div class="nav-item" onclick="switchTab('page-tasks', this)"><i class="fa-solid fa-list-check"></i><span>Tasks</span></div>
+    <div class="nav-item" onclick="switchTab('page-profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
   </div>
 
   <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      databaseURL: "https://ahs-shop-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Telegram WebApp Integration
     const tg = window.Telegram ? window.Telegram.WebApp : null;
+    let userId = "guest_user";
+    let userName = "Airdrop User";
+    let userBalance = 0;
 
     if (tg) {
       tg.ready();
       tg.expand();
-
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        const user = tg.initDataUnsafe.user;
-        document.getElementById('userName').innerText = user.username || user.first_name || 'adi_modaretor';
-        document.getElementById('userAvatar').innerText = (user.first_name ? user.first_name[0] : '$').toUpperCase();
+        userId = tg.initDataUnsafe.user.id.toString();
+        userName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "User";
       }
     }
 
-    let balance = 98227;
-    let claimed = false;
+    document.getElementById('userName').innerText = userName;
+    document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
+    document.getElementById('profUser').innerText = userName;
+    document.getElementById('profId').innerText = userId;
 
-    function claimReward() {
-      if (claimed) {
-        showAlert('Already Claimed Today!');
-        return;
-      }
-      balance += 1000;
-      document.getElementById('totalBalance').innerHTML = balance.toLocaleString() + ' <span>ADI$</span>';
-      claimed = true;
-      document.getElementById('claimBtn').style.opacity = '0.5';
-      document.getElementById('claimBtn').innerText = 'DONE';
-      showAlert('Congratulations! You claimed 1,000 ADI$.');
-    }
-
-    function triggerAction(actionName) {
-      showAlert(actionName + ' feature clicked!');
-    }
-
-    function switchNav(element, pageName) {
-      document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-      element.classList.add('active');
-      showAlert('Navigated to ' + pageName);
-    }
-
-    function showAlert(message) {
-      if (tg && tg.showAlert) {
-        tg.showAlert(message);
+    // Firebase Data Listener
+    const userRef = database.ref('users/' + userId);
+    userRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        userBalance = data.balance || 0;
       } else {
-        alert(message);
+        userRef.set({ username: userName, balance: 1000, lastClaim: 0 });
+        userBalance = 1000;
+      }
+      updateUI();
+    });
+
+    function updateUI() {
+      document.getElementById('totalBalance').innerHTML = userBalance.toLocaleString() + ' <span>ADI$</span>';
+      document.getElementById('usdValue').innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
+      document.getElementById('profBalance').innerText = userBalance.toLocaleString() + ' ADI$';
+    }
+
+    function switchTab(pageId, navElement) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+
+      if (navElement) {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        navElement.classList.add('active');
+      }
+    }
+
+    function claimDailyReward() {
+      userBalance += 1000;
+      userRef.update({ balance: userBalance });
+      showAlert('Success! Claimed 1,000 ADI$');
+    }
+
+    function startMining() {
+      userBalance += 500;
+      userRef.update({ balance: userBalance });
+      showAlert('Mined +500 ADI$ Tokens!');
+    }
+
+    function completeTask(reward, btn) {
+      userBalance += reward;
+      userRef.update({ balance: userBalance });
+      btn.innerText = "Done";
+      btn.style.opacity = "0.5";
+      btn.disabled = true;
+      showAlert('Mission Completed! Reward Received.');
+    }
+
+    function showAlert(msg) {
+      if (tg && tg.showAlert) {
+        tg.showAlert(msg);
+      } else {
+        alert(msg);
       }
     }
   </script>
 </body>
             </html>
-            
+  
