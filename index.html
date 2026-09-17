@@ -6,37 +6,65 @@
   <title>$ADI Mining App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="app-container">
+    <!-- Top Header -->
     <div class="header">
-      <div class="user-info">
-        <span id="user-name">Loading...</span>
+      <div class="user-profile">
+        <div class="avatar" id="avatar-letter">U</div>
+        <div class="user-details">
+          <span id="user-name">Loading...</span>
+          <span class="user-badge">PRO MINER</span>
+        </div>
       </div>
-      <button class="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+      <button class="wallet-btn" onclick="connectWallet()">
+        <span>⚡ Connect</span>
+      </button>
     </div>
 
+    <!-- Balance Display -->
     <div class="balance-card">
-      <p class="balance-title">TOTAL $ADI BALANCE</p>
-      <h1 id="balance">0.00</h1>
+      <span class="balance-label">TOTAL BALANCE</span>
+      <div class="balance-amount">
+        <h1 id="balance">0.00</h1>
+        <span class="token-symbol">$ADI</span>
+      </div>
     </div>
 
+    <!-- Mining Coin Ring -->
     <div class="mining-section">
-      <div class="coin-circle" id="coin-btn" onclick="claimTokens()">
-        <img src="https://cdn-icons-png.flaticon.com/512/6001/6001368.png" alt="ADI Coin" class="coin-img">
+      <div class="coin-wrapper">
+        <div class="glow-ring"></div>
+        <div class="coin-circle" id="coin-btn" onclick="claimTokens()">
+          <img src="https://cdn-icons-png.flaticon.com/512/6001/6001368.png" alt="ADI Coin" class="coin-img">
+        </div>
       </div>
-      <button class="claim-btn" id="claim-btn" onclick="claimTokens()">CLAIM DAILY REWARD</button>
+      
+      <button class="claim-btn" id="claim-btn" onclick="claimTokens()">
+        CLAIM DAILY REWARD
+      </button>
       <p class="timer-text" id="timer"></p>
     </div>
 
+    <!-- Bottom Navigation -->
     <div class="nav-bar">
-      <div class="nav-item active">Home</div>
-      <div class="nav-item" onclick="alert('Tasks coming soon!')">Tasks</div>
-      <div class="nav-item" onclick="alert('Referral coming soon!')">Friends</div>
+      <div class="nav-item active">
+        <span class="nav-icon">⛏️</span>
+        <span class="nav-label">Mine</span>
+      </div>
+      <div class="nav-item" onclick="alert('Tasks system coming soon!')">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Tasks</span>
+      </div>
+      <div class="nav-item" onclick="alert('Referral system coming soon!')">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Friends</span>
+      </div>
     </div>
   </div>
 
   <script src="script.js"></script>
 </body>
-  </html>
-
+</html>
