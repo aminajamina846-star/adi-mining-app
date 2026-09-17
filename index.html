@@ -12,6 +12,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
+  <!-- Ethers.js for Web3 / TrustWallet / MetaMask -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+
   <!-- Google Fonts & Font Awesome Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,8 +27,8 @@
       --text-main: #ffffff;
       --text-sub: #9ca3af;
       --accent-silver: #e2e8f0;
-      --accent-glow: #cbd5e1;
       --green-glow: #10b981;
+      --yellow-glow: #f59e0b;
     }
 
     * {
@@ -39,9 +42,6 @@
 
     body {
       background-color: var(--bg-color);
-      background-image: 
-        radial-gradient(circle at 10% 20%, rgba(226, 232, 240, 0.05) 0%, transparent 20%),
-        radial-gradient(circle at 90% 80%, rgba(226, 232, 240, 0.03) 0%, transparent 20%);
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -58,10 +58,7 @@
 
     /* Page View Handling */
     .page { display: none; }
-    .page.active { 
-      display: block; 
-      animation: fadeIn 0.3s ease-in-out; 
-    }
+    .page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
@@ -93,22 +90,11 @@
       align-items: center;
       font-weight: 800;
       font-size: 18px;
-      box-shadow: 0 0 15px rgba(226, 232, 240, 0.2);
       border: 1.5px solid rgba(255, 255, 255, 0.3);
     }
 
-    .user-details h3 {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .user-details p {
-      font-size: 11px;
-      color: var(--text-sub);
-      font-weight: 600;
-      margin-top: 2px;
-    }
+    .user-details h3 { font-size: 15px; font-weight: 700; }
+    .user-details p { font-size: 11px; color: var(--text-sub); font-weight: 600; margin-top: 2px; }
 
     .icon-btn {
       width: 42px;
@@ -122,13 +108,9 @@
       color: var(--text-main);
       font-size: 16px;
       cursor: pointer;
-      backdrop-filter: blur(10px);
-      transition: all 0.2s ease;
     }
 
-    .icon-btn:active { transform: scale(0.95); }
-
-    /* Glass Cards */
+    /* Cards */
     .card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -151,13 +133,7 @@
       margin-bottom: 12px;
     }
 
-    .card-label {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--text-sub);
-      text-transform: uppercase;
-    }
+    .card-label { font-size: 11px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; }
 
     .tag-btn {
       background: rgba(255, 255, 255, 0.08);
@@ -168,37 +144,15 @@
       font-size: 10px;
       font-weight: 700;
       cursor: pointer;
-      transition: 0.2s;
     }
 
-    .tag-btn:active { transform: scale(0.95); }
+    .balance-val { font-size: 36px; font-weight: 800; color: var(--text-main); }
+    .balance-val span { font-size: 18px; color: var(--accent-silver); font-weight: 600; }
 
-    .balance-val {
-      font-size: 36px;
-      font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -0.5px;
-    }
+    .sub-value { font-size: 13px; font-weight: 600; color: var(--green-glow); margin-top: 4px; margin-bottom: 18px; }
 
-    .balance-val span {
-      font-size: 18px;
-      color: var(--accent-silver);
-      font-weight: 600;
-    }
-
-    .sub-value {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--green-glow);
-      margin-top: 4px;
-      margin-bottom: 18px;
-    }
-
-    /* Modern Metallic Buttons */
-    .btn-row {
-      display: flex;
-      gap: 12px;
-    }
+    /* Buttons */
+    .btn-row { display: flex; gap: 12px; }
 
     .btn {
       flex: 1;
@@ -210,7 +164,6 @@
       text-align: center;
       border: none;
       outline: none;
-      transition: all 0.2s ease;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -220,7 +173,6 @@
     .btn-metallic {
       background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
       color: #0f172a;
-      box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15);
     }
 
     .btn-dark {
@@ -229,24 +181,30 @@
       border: 1px solid var(--card-border);
     }
 
-    .btn:active { transform: scale(0.97); }
+    .btn-pending {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--yellow-glow);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      cursor: not-allowed;
+    }
+
+    .btn-completed {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--green-glow);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      cursor: not-allowed;
+    }
 
     .section-title {
       font-size: 12px;
       font-weight: 800;
       margin: 20px 0 12px 0;
-      letter-spacing: 1px;
       color: var(--text-sub);
       text-transform: uppercase;
     }
 
     /* Grid Items */
-    .grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 16px;
-    }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
 
     .grid-item {
       background: var(--card-bg);
@@ -255,25 +213,12 @@
       padding: 14px 6px;
       text-align: center;
       cursor: pointer;
-      transition: 0.2s;
     }
 
-    .grid-item i {
-      font-size: 18px;
-      color: var(--accent-silver);
-      margin-bottom: 6px;
-      display: block;
-    }
+    .grid-item i { font-size: 18px; color: var(--accent-silver); margin-bottom: 6px; display: block; }
+    .grid-item span { font-size: 10px; font-weight: 700; color: var(--text-main); }
 
-    .grid-item span {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .grid-item:active { transform: scale(0.95); }
-
-    /* Market List Items */
+    /* Market Items */
     .market-item {
       display: flex;
       justify-content: space-between;
@@ -284,11 +229,7 @@
 
     .market-item:last-child { border-bottom: none; }
 
-    .coin-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .coin-info { display: flex; align-items: center; gap: 12px; }
 
     .coin-icon {
       width: 36px;
@@ -301,7 +242,6 @@
       align-items: center;
       font-weight: 700;
       font-size: 13px;
-      color: var(--accent-silver);
     }
 
     .price-badge {
@@ -314,7 +254,21 @@
       font-weight: 700;
     }
 
-    /* Bottom Navigation Bar */
+    /* Wallet Input */
+    .wallet-input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 11px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      outline: none;
+    }
+
+    /* Bottom Nav */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -322,7 +276,7 @@
       transform: translateX(-50%);
       width: 100%;
       max-width: 420px;
-      background: rgba(11, 15, 23, 0.85);
+      background: rgba(11, 15, 23, 0.95);
       backdrop-filter: blur(20px);
       border-top: 1px solid var(--card-border);
       display: flex;
@@ -339,19 +293,15 @@
       color: var(--text-sub);
       padding: 6px 12px;
       border-radius: 12px;
-      transition: all 0.2s ease;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 4px;
     }
 
-    .nav-item i { font-size: 16px; }
-
     .nav-item.active {
       color: #0f172a;
       background: var(--accent-silver);
-      box-shadow: 0 0 12px rgba(226, 232, 240, 0.3);
     }
   </style>
 </head>
@@ -434,20 +384,6 @@
             <span class="price-badge">+0.00%</span>
           </div>
         </div>
-
-        <div class="market-item">
-          <div class="coin-info">
-            <div class="coin-icon"><i class="fa-brands fa-bitcoin"></i></div>
-            <div>
-              <strong style="font-size: 13px; display: block;">Bitcoin</strong>
-              <span style="font-size: 10px; color: var(--text-sub);">BTC</span>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-size: 13px; font-weight: 700;">$76,863.98</div>
-            <span class="price-badge">+1.56%</span>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -483,20 +419,24 @@
     <!-- TASKS PAGE -->
     <div id="page-tasks" class="page">
       <div class="card">
-        <div class="section-title" style="margin-top: 0;">Available Missions</div>
+        <div class="section-title" style="margin-top: 0;">Missions & Tasks</div>
+        
+        <!-- Task 1 -->
         <div class="market-item">
           <div>
             <strong style="font-size: 13px; display: block;">Join Telegram Channel</strong>
             <span style="font-size: 11px; color: var(--green-glow); font-weight: 600;">+2,000 ADI$</span>
           </div>
-          <button class="btn btn-metallic" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="completeTask(2000, this)">Start</button>
+          <button class="btn btn-metallic" id="task1Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="submitTask('task1', 2000, 'https://t.me/example')">Start</button>
         </div>
+
+        <!-- Task 2 -->
         <div class="market-item">
           <div>
             <strong style="font-size: 13px; display: block;">Subscribe YouTube Channel</strong>
             <span style="font-size: 11px; color: var(--green-glow); font-weight: 600;">+3,000 ADI$</span>
           </div>
-          <button class="btn btn-metallic" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="completeTask(3000, this)">Start</button>
+          <button class="btn btn-metallic" id="task2Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="submitTask('task2', 3000, 'https://youtube.com')">Start</button>
         </div>
       </div>
     </div>
@@ -510,7 +450,12 @@
           <p><strong>Telegram ID:</strong> <span id="profId" style="color: var(--text-sub);">...</span></p>
           <p><strong>Current Balance:</strong> <span id="profBalance" style="color: var(--green-glow); font-weight: 800;">0 ADI$</span></p>
         </div>
-        <button class="btn btn-metallic" style="width: 100%; margin-top: 20px;" onclick="showAlert('TON Wallet Integration Coming Soon!')"><i class="fa-solid fa-link"></i> Connect TON Wallet</button>
+        
+        <div style="margin-top: 15px;">
+          <label style="font-size: 11px; font-weight: 700; color: var(--text-sub);">Web3 / TrustWallet / MetaMask Address:</label>
+          <input type="text" id="walletInput" class="wallet-input" placeholder="0x... (EVM Wallet Address)" />
+          <button class="btn btn-metallic" style="width: 100%;" onclick="connectOrSaveWallet()"><i class="fa-solid fa-wallet"></i> Connect / Save Wallet</button>
+        </div>
       </div>
     </div>
 
@@ -538,6 +483,7 @@
     let userId = "guest_user";
     let userName = "Airdrop User";
     let userBalance = 0;
+    let tasksData = {};
 
     if (tg) {
       tg.ready();
@@ -553,23 +499,28 @@
     document.getElementById('profUser').innerText = userName;
     document.getElementById('profId').innerText = userId;
 
-    // Firebase Data Listener
+    // Load User Data Realtime
     const userRef = database.ref('users/' + userId);
     userRef.on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         userBalance = data.balance || 0;
+        tasksData = data.tasks || {};
+        if (data.wallet) {
+          document.getElementById('walletInput').value = data.wallet;
+        }
       } else {
-        userRef.set({ username: userName, balance: 1000, lastClaim: 0 });
+        userRef.set({ username: userName, balance: 1000, wallet: "", tasks: {} });
         userBalance = 1000;
       }
       updateUI();
+      updateTasksUI();
     });
 
     function updateUI() {
-      document.getElementById('totalBalance').innerHTML = userBalance.toLocaleString() + ' <span>ADI$</span>';
+      document.getElementById('totalBalance').innerHTML = Number(userBalance).toLocaleString() + ' <span>ADI$</span>';
       document.getElementById('usdValue').innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
-      document.getElementById('profBalance').innerText = userBalance.toLocaleString() + ' ADI$';
+      document.getElementById('profBalance').innerText = Number(userBalance).toLocaleString() + ' ADI$';
     }
 
     function switchTab(pageId, navElement) {
@@ -594,23 +545,40 @@
       showAlert('Mined +500 ADI$ Tokens!');
     }
 
-    function completeTask(reward, btn) {
-      userBalance += reward;
-      userRef.update({ balance: userBalance });
-      btn.innerText = "Done";
-      btn.style.opacity = "0.5";
-      btn.disabled = true;
-      showAlert('Mission Completed! Reward Received.');
+    /* Task System with Pending Review State */
+    function submitTask(taskId, reward, link) {
+      if (tg && tg.openLink) { tg.openLink(link); } else { window.open(link, '_blank'); }
+
+      // Save as Pending in Firebase for Admin Approval
+      database.ref('users/' + userId + '/tasks/' + taskId).set({
+        status: 'pending',
+        reward: reward,
+        submittedAt: Date.now()
+      });
+
+      showAlert('Task submitted! Status: Under Review');
     }
 
-    function showAlert(msg) {
-      if (tg && tg.showAlert) {
-        tg.showAlert(msg);
-      } else {
-        alert(msg);
-      }
+    function updateTasksUI() {
+      ['task1', 'task2'].forEach(taskId => {
+        const btn = document.getElementById(taskId + 'Btn');
+        if (btn && tasksData[taskId]) {
+          const status = tasksData[taskId].status;
+          if (status === 'pending') {
+            btn.innerText = "In Review";
+            btn.className = "btn btn-pending";
+            btn.onclick = null;
+          } else if (status === 'approved') {
+            btn.innerText = "Approved";
+            btn.className = "btn btn-completed";
+            btn.onclick = null;
+          }
+        }
+      });
     }
-  </script>
-</body>
-            </html>
-  
+
+    /* Trust Wallet / MetaMask / Manual Wallet Saver */
+    async function connectOrSaveWallet() {
+      if (window.ethereum) {
+        try {
+          const pr
