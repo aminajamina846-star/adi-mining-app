@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>$ADI Mining App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <div class="header">
+      <div class="user-info">
+        <span id="user-name">Loading...</span>
+      </div>
+      <button class="wallet-btn" onclick="connectWallet()">Connect Wallet</button>
+    </div>
+
+    <div class="balance-card">
+      <p class="balance-title">TOTAL $ADI BALANCE</p>
+      <h1 id="balance">0.00</h1>
+    </div>
+
+    <div class="mining-section">
+      <div class="coin-circle" id="coin-btn" onclick="claimTokens()">
+        <img src="https://cdn-icons-png.flaticon.com/512/6001/6001368.png" alt="ADI Coin" class="coin-img">
+      </div>
+      <button class="claim-btn" id="claim-btn" onclick="claimTokens()">CLAIM DAILY REWARD</button>
+      <p class="timer-text" id="timer"></p>
+    </div>
+
+    <div class="nav-bar">
+      <div class="nav-item active">Home</div>
+      <div class="nav-item" onclick="alert('Tasks coming soon!')">Tasks</div>
+      <div class="nav-item" onclick="alert('Referral coming soon!')">Friends</div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+  </html>
+
