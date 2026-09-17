@@ -465,6 +465,15 @@
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    // User IP Track & Sync to Database
+fetch('https://api.ipify.org?format=json')
+  .then(res => res.json())
+  .then(data => {
+    if (userId && data.ip) {
+      database.ref('users/' + userId).update({ ipAddress: data.ip });
+    }
+  });
+    
 
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     let userId = "guest_user";
