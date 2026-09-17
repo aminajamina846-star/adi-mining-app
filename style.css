@@ -1,0 +1,142 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  user-select: none;
+}
+
+body {
+  background-color: #0f172a;
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 420px;
+  height: 100vh;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#user-name {
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.wallet-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.balance-card {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 10px;
+}
+
+.balance-title {
+  font-size: 12px;
+  color: #94a3b8;
+  letter-spacing: 1px;
+}
+
+#balance {
+  font-size: 36px;
+  color: #f59e0b;
+  margin-top: 5px;
+}
+
+.mining-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.coin-circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f59e0b 0%, #d97706 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
+  cursor: pointer;
+  margin-bottom: 25px;
+}
+
+.coin-circle:active {
+  transform: scale(0.95);
+}
+
+.coin-img {
+  width: 120px;
+  height: 120px;
+}
+
+.claim-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.claim-btn:disabled {
+  background: #475569;
+  cursor: not-allowed;
+}
+
+.timer-text {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #38bdf8;
+}
+
+.nav-bar {
+  display: flex;
+  justify-content: space-around;
+  background: rgba(15, 23, 42, 0.8);
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nav-item {
+  color: #94a3b8;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.nav-item.active {
+  color: #f59e0b;
+  font-weight: bold;
+}
