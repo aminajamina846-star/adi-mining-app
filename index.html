@@ -459,7 +459,7 @@
     <div class="nav-item" onclick="switchTab('page-profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
   </div>
 
-<script>
+<script<script>
   // ১. ফায়ারবেস কনফিগারেশন
   const firebaseConfig = {
     databaseURL: "https://ahs-shop-default-rtdb.firebaseio.com"
@@ -467,7 +467,7 @@
   firebase.initializeApp(firebaseConfig);
   const database = firebase.database();
 
-  // ২. টেলিগ্রাম ইউজার ডাটা
+  // ২. টেলিগ্রাম ওয়েব অ্যাপ ইনিশিয়ালাইজেশন
   const tg = window.Telegram ? window.Telegram.WebApp : null;
   if (tg) {
     tg.ready();
@@ -475,6 +475,7 @@
   }
 
   const userId = tg?.initDataUnsafe?.user?.id?.toString() || "guest_user";
+  const userName = tg?.initDataUnsafe?.user?.first_name || "Airdrop User";
   const todayDate = new Date().toISOString().slice(0, 10);
 
   let currentBalance = 0;
@@ -482,32 +483,61 @@
   let lastClaimDate = "";
   let userIP = "";
 
-  // ৩. ইউজার IP ট্র্যাক করা
+  // ইউজারনেম স্ক্রিনে দেখানো
+  const nameElem = document.getElementById('username');
+  if (nameElem) nameElem.innerText = userName;
+
+  // ৩. ইউজার IP নেওয়া
   fetch('https://api.ipify.org?format=json')
     .then(res => res.json())
     .then(data => {
-      if (data.ip) {
+      if (data && data.ip) {
         userIP = data.ip.replace(/\./g, '_');
       }
-    }).catch(e => console.log("IP fetch error", e));
+    })
+    .catch(e => console.log("IP fetch error", e));
 
-  // ৪. ফায়ারবেস থেকে ডাটা সিঙ্ক করা
+  // ৪. ফায়ারবেস থেকে লাইভ ডাটা লোড ও আপডেট
   database.ref('users/' + userId).on('value', (snapshot) => {
     const data = snapshot.val();
     if (data) {
       currentBalance = data.balance || 0;
       lastMineDate = data.lastMineDate || "";
       lastClaimDate = data.lastClaimDate || "";
+    } else {
+      currentBalance = 0;
     }
     
-    // UI-তে ব্যালেন্স আপডেট
-    const balanceElem = document.getElementById('user-balance');
-    if (balanceElem) {
-      balanceElem.innerText = currentBalance.toLocaleString();
-    }
+    // স্ক্রিনে ব্যালেন্স আপডেট
+    updateBalanceUI();
   });
 
-  // ৫. Daily Claim (দিনে ১ বার - ১,০০০ $ADI)
+  function updateBalanceUI() {
+    const elem1 = document.getElementById('user-balance');
+    const elem2 = document.getElementById('totalBalance');
+    if (elem1) elem1.innerText = currentBalance.toLocaleString();
+    if (elem2) elem2.innerText = currentBalance.toLocaleString();
+  }
+
+  // ৫. পেজ সুইচার লজিক (Home, Mine, Markets, Tasks, Profile)
+  function switchTab(pageId, element) {
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(p => p.classList.remove('active'));
+    
+    const selectedPage = document.getElementById(pageId);
+    if (selectedPage) selectedPage.classList.add('active');
+
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(n => n.classList.remove('active'));
+    if (element) element.classList.add('active');
+  }
+
+  // ৬. Alert দেখার ফাংশন
+  function showAlert(msg) {
+    alert(msg);
+  }
+
+  // ৭. Daily Reward Claim (দিনে ১ বার - ১,০০০ $ADI)
   function claimDailyReward() {
     if (lastClaimDate === todayDate) {
       alert("You have already claimed today's reward! Come back tomorrow.");
@@ -523,10 +553,10 @@
       ipAddress: userIP || "unknown"
     }).then(() => {
       alert("Success! Claimed 1,000 ADI$");
-    });
+    }).catch(err => alert("Error: " + err.message));
   }
 
-  // ৬. Daily Mining (দিনে ১ বার - ৫০০ $ADI)
+  // ৮. Daily Mining (দিনে ১ বার - ৫০০ $ADI)
   function startMining() {
     if (lastMineDate === todayDate) {
       alert("Daily mining limit reached (1/1)! Try again tomorrow.");
@@ -540,7 +570,9 @@
       balance: currentBalance,
       lastMineDate: todayDate,
       ipAddress: userIP || "unknown"
-    });
+    }).then(() => {
+      alert("Mined +500 ADI$ Tokens!");
+    }).catch(err => alert("Error: " + err.message));
 
     if (userIP) {
       database.ref('ip_logs/' + userIP).set({
@@ -548,10 +580,9 @@
         lastActive: Date.now()
       });
     }
-
-    alert("Mined +500 ADI$ Tokens!");
   }
 </script>
+
 
 </body>
                 </html>
