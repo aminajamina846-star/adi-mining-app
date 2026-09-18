@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ADI$ Airdrop & Mining App</title>
+
+  <!-- Telegram Web App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Firebase SDK (Compat Version) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Web3 Modal & Ethers.js for Auto Trust Wallet Connect -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-color: #000000;
+      --card-bg: rgba(20, 20, 20, 0.85);
+      --card-border: rgba(255, 255, 255, 0.15);
+      --text-main: #ffffff;
+      --text-sub: #a3a3a3;
+      --accent-silver: #e2e8f0;
+      --silver-glow: #cbd5e1;
+      --silver-gradient: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 10% 90%, rgba(200, 200, 200, 0.03) 0%, transparent 30%);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      color: var(--text-main);
+      padding-bottom: 95px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 16px;
+    }
+
+    /* Page View Handling */
+    .page { display: none; }
+    .page.active { 
+      display: block; 
+      animation: fadeIn 0.3s ease-in-out; 
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Top Profile Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 10px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--card-border);
+    }
+
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      background: var(--silver-gradient);
+      color: #000000;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 800;
+      font-size: 18px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .user-details h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .user-details p {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-main);
+      font-size: 16px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:active { transform: scale(0.95); }
+
+    /* Glass Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .card-silver {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(10, 10, 10, 0.9) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.05);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+    }
+
+    .tag-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--accent-silver);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .tag-btn:active { transform: scale(0.95); }
+
+    .balance-val {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+
+    .balance-val span {
+      font-size: 18px;
+      color: var(--accent-silver);
+      font-weight: 600;
+    }
+
+    .sub-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-top: 4px;
+      margin-bottom: 18px;
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 13px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+      border: none;
+      outline: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-metallic {
+      background: var(--silver-gradient);
+      color: #000000;
+      box-shadow: 0 4px 20px rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-dark {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 800;
+      margin: 20px 0 12px 0;
+      letter-spacing: 1px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+    }
+
+    /* Grid Items */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .grid-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .grid-item i {
+      font-size: 18px;
+      color: var(--accent-silver);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .grid-item span {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .grid-item:active { transform: scale(0.95); }
+
+    /* Market List Items */
+    .market-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .market-item:last-child { border-bottom: none; }
+
+    .coin-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .coin-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--accent-silver);
+    }
+
+    .price-badge {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--accent-silver);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    /* Task Elements */
+    .task-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .task-title {
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .task-reward {
+      font-size: 11px;
+      color: var(--accent-green);
+      font-weight: 800;
+    }
+
+    .task-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 11px;
+      margin: 8px 0;
+      outline: none;
+    }
+
+    .task-input:focus { border-color: rgba(255,255,255,0.4); }
+
+    /* Mining Visual Ring */
+    .mining-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.8) 100%);
+      border: 3px solid rgba(255,255,255,0.3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 16px auto;
+      position: relative;
+    }
+
+    .mining-active {
+      animation: pulse 2s infinite;
+      border-color: #4ade80;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+      70% { box-shadow: 0 0 0 15px rgba(74, 222, 128, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 420px;
+      background: rgba(10, 10, 10, 0.9);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 999;
+    }
+
+    .nav-item {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text-sub);
+      padding: 6px 12px;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-item i { font-size: 16px; }
+
+    .nav-item.active {
+      color: #000000;
+      background: var(--silver-gradient);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="profile-info">
+        <div class="avatar" id="userAvatar"><i class="fa-solid fa-user"></i></div>
+        <div class="user-details">
+          <h3 id="userName">User</h3>
+          <p id="userLevel"><i class="fa-solid fa-shield-halved" style="color: var(--accent-silver);"></i> Verified Miner</p>
+        </div>
+      </div>
+      <div class="icon-btn" onclick="showAlert('No new notifications')"><i class="fa-regular fa-bell"></i></div>
+    </div>
+
+    <!-- 1. HOME PAGE -->
+    <div id="page-home" class="page active">
+      <div class="card card-silver">
+        <div class="card-header">
+          <span class="card-label">Total Balance</span>
+          <button class="tag-btn" onclick="openHistoryModal()">History <i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="balance-val" id="totalBalance">0 <span>ADI$</span></div>
+        <div class="sub-value" id="usdValue">≈ $0.00 USD</div>
+        <div class="btn-row">
+          <button class="btn btn-metallic" onclick="showAlert('Exchange Portal Opening Soon')"><i class="fa-solid fa-arrow-right-arrow-left"></i> Exchange</button>
+          <button class="btn btn-dark" onclick="autoConnectTrustWallet()"><i class="fa-solid fa-wallet"></i> Wallet</button>
+        </div>
+      </div>
+
+      <!-- Invite Friends Button -->
+      <button class="btn btn-metallic" onclick="shareReferralLink()" style="width: 100%; margin-bottom: 16px; padding: 14px; font-size: 13px;">
+        <i class="fa-solid fa-users"></i> Invite Friends (+10 ADI)
+      </button>
+
+      <!-- Daily Reward Card -->
+      <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-sub);">DAILY REWARD</div>
+          <div style="font-size: 13px; font-weight: 800; margin-top: 2px;">+1,000 ADI$ Token</div>
+        </div>
+        <button class="btn btn-metallic" id="dailyClaimBtn" style="padding: 8px 16px; flex: initial; font-size: 11px;" onclick="claimDailyReward()">Claim</button>
+      </div>
+
+      <div class="section-title">Quick Actions</div>
+      <div class="grid-4">
+        <div class="grid-item" onclick="switchTab('page-mine', document.querySelectorAll('.nav-item')[1])">
+          <i class="fa-solid fa-pickaxe"></i>
+          <span>Mining</span>
+        </div>
+        <div class="grid-item" onclick="showAlert('Speed Booster Active!')">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Boost</span>
+        </div>
+        <div class="grid-item" onclick="switchTab('page-tasks', document.querySelectorAll('.nav-item')[3])">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Tasks</span>
+        </div>
+        <div class="grid-item" onclick="switchTab('page-markets', document.querySelectorAll('.nav-item')[2])">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Markets</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">Market Overview</span>
+          <button class="tag-btn" onclick="switchTab('page-markets', document.querySelectorAll('.nav-item')[2])">View All</button>
+        </div>
+        
+        <div class="market-item">
+          <div class="coin-info">
+            <div class="coin-icon">ADI$</div>
+            <div>
+              <strong style="font-size: 13px; display: block;">ADI$ Token</strong>
+              <span style="font-size: 10px; color: var(--text-sub);">Native Token</span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 13px; font-weight: 700;">$0.000100</div>
+            <span class="price-badge">+0.00%</span>
+          </div>
+        </div>
+
+        <div class="market-item">
+          <div class="coin-info">
+            <div class="coin-icon"><i class="fa-brands fa-bitcoin"></i></div>
+            <div>
+              <strong style="font-size: 13px; display: block;">Bitcoin</strong>
+              <span style="font-size: 10px; color: var(--text-sub);">BTC</span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 13px; font-weight: 700;">$76,863.98</div>
+            <span class="price-badge">+1.56%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. MINE PAGE -->
+    <div id="page-mine" class="page">
+      <div class="card card-silver" style="text-align: center; padding: 35px 20px;">
+        <div class="mining-circle" id="miningCircle">
+          <i class="fa-solid fa-cube" style="font-size: 40px; color: var(--accent-silver);"></i>
+        </div>
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Mining Protocol</h2>
+        <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 24px;" id="miningTimer">Tap below to initialize block mining session and claim tokens.</p>
+        <button class="btn btn-metallic" id="mineBtn" style="width: 100%; padding: 16px; font-size: 13px;" onclick="startMining()"><i class="fa-solid fa-play"></i> Start Mining (+500 ADI$)</button>
+      </div>
+    </div>
+
+    <!-- 3. MARKETS PAGE -->
+    <div id="page-markets" class="page">
+      <div class="card">
+        <div class="section-title" style="margin-top: 0;">Live Market Metrics</div>
+        <div class="market-item">
+          <div class="coin-info"><div class="coin-icon">ADI$</div><div><strong>ADI$ Token</strong></div></div>
+          <div><strong>$0.000100</strong></div>
+        </div>
+        <div class="market-item">
+          <div class="coin-info"><div class="coin-icon"><i class="fa-brands fa-bitcoin"></i></div><div><strong>Bitcoin</strong></div></div>
+          <div><strong>$76,863.98</strong></div>
+        </div>
+        <div class="market-item">
+          <div class="coin-info"><div class="coin-icon"><i class="fa-brands fa-ethereum"></i></div><div><strong>Ethereum</strong></div></div>
+          <div><strong>$3,420.50</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. TASKS PAGE -->
+    <div id="page-tasks" class="page">
+      <div class="card">
+        <div class="section-title" style="margin-top: 0;">Available Missions</div>
+        
+        <!-- Instant Reward Tasks -->
+        <div class="market-item">
+          <div>
+            <strong style="font-size: 13px; display: block;">Join Telegram Channel</strong>
+            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+2,000 ADI$</span>
+          </div>
+          <button class="btn btn-metallic" id="task1Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task1', 2000, 'Telegram Channel')">Claim</button>
+        </div>
+
+        <div class="market-item">
+          <div>
+            <strong style="font-size: 13px; display: block;">Subscribe YouTube Channel</strong>
+            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+3,000 ADI$</span>
+          </div>
+          <button class="btn btn-metallic" id="task2Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task2', 3000, 'YouTube Subscribe')">Claim</button>
+        </div>
+
+        <div class="market-item">
+          <div>
+            <strong style="font-size: 13px; display: block;">Watch Video & Enter Code</strong>
+            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+5,000 ADI$</span>
+          </div>
+          <button class="btn btn-metallic" id="task3Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task3', 5000, 'Watch Video Code', 'ADI2026')">Verify & Claim</button>
+        </div>
+      </div>
+
+      <!-- Single Proof Submissions Section -->
+      <div class="section-title">Manual Verification Tasks (Once Allowed)</div>
+
+      <div class="task-card">
+        <div class="task-header">
+          <span class="task-title"><i class="fa-brands fa-telegram" style="color:#229ED9;"></i> Telegram Channel</span>
+          <span class="task-reward">+10 ADI$</span>
+        </div>
+        <a href="https://t.me/adiofficialannusment" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px; display:inline-block;">1. Join Channel</a>
+        <input type="text" id="proof-tg" class="task-input" placeholder="Enter Telegram Username (@username)">
+        <button class="btn btn-metallic" id="btn-proof-tg" style="width:100%; padding:8px;" onclick="submitProofOnce('proof_tg', 'Telegram Channel', 10, 'proof-tg')">Submit Proof</button>
+      </div>
+
+        <div class="task-card">
+        <div class="task-header">
+          <span class="task-title"><i class="fa-brands fa-x-twitter"></i> Follow X</span>
+          <span class="task-reward">+20 ADI$</span>
+        </div>
+        <a href="https://x.com/adiairdrops" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px; display:inline-block;">1. Follow X Profile</a>
+        <input type="text" id="proof-x" class="task-input" placeholder="Enter X Username (@username)">
+        <button class="btn btn-metallic" id="btn-proof-x" style="width:100%; padding:8px;" onclick="submitProofOnce('proof_x', 'Follow X', 20, 'proof-x')">Submit Proof</button>
+      </div>
+
+      <div class="task-card">
+        <div class="task-header">
+          <span class="task-title"><i class="fa-brands fa-facebook" style="color:#1877F2;"></i> Follow Facebook</span>
+          <span class="task-reward">+40 ADI$</span>
+        </div>
+        <a href="https://www.facebook.com/profile.php?id=61594465981380" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px; display:inline-block;">1. Visit Facebook Page</a>
+        <input type="text" id="proof-fb" class="task-input" placeholder="Enter FB Profile Link/Username">
+        <button class="btn btn-metallic" id="btn-proof-fb" style="width:100%; padding:8px;" onclick="submitProofOnce('proof_fb', 'Facebook Page', 40, 'proof-fb')">Submit Proof</button>
+      </div>
+
+      <div class="task-card">
+        <div class="task-header">
+          <span class="task-title"><i class="fa-brands fa-youtube" style="color:#FF0000;"></i> YouTube Subscribe</span>
+          <span class="task-reward">+60 ADI$</span>
+        </div>
+        <input type="text" id="proof-yt" class="task-input" placeholder="Paste Screenshot Image URL / Proof">
+        <button class="btn btn-metallic" id="btn-proof-yt" style="width:100%; padding:8px;" onclick="submitProofOnce('proof_yt', 'YouTube Subscribe', 60, 'proof-yt')">Submit Proof</button>
+      </div>
+
+      <div class="task-card">
+        <div class="task-header">
+          <span class="task-title"><i class="fa-brands fa-instagram" style="color:#E4405F;"></i> Follow Instagram</span>
+          <span class="task-reward">+10 ADI$</span>
+        </div>
+        <a href="https://www.instagram.com/adiairdrop3?stkn=eTRtNmJ2bWdkaTZ5" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px; display:inline-block;">1. Follow Instagram</a>
+        <input type="text" id="proof-ins" class="task-input" placeholder="Paste Screenshot Image URL">
+        <button class="btn btn-metallic" id="btn-proof-ins" style="width:100%; padding:8px;" onclick="submitProofOnce('proof_ins', 'Instagram Follow', 10, 'proof-ins')">Submit Proof</button>
+      </div>
+
+      <div id="dynamicTasksContainer"></div>
+    </div>
+
+    <!-- 5. PROFILE & WALLET PAGE -->
+    <div id="page-profile" class="page">
+      <div class="card card-silver">
+        <div class="section-title" style="margin-top: 0;">Account Verification</div>
+        <div style="font-size: 13px; line-height: 2;">
+          <p><strong>Username:</strong> <span id="profUser" style="color: var(--text-sub);">Loading...</span></p>
+          <p><strong>Telegram ID:</strong> <span id="profId" style="color: var(--text-sub);">...</span></p>
+          <p><strong>Current Balance:</strong> <span id="profBalance" style="color: var(--accent-silver); font-weight: 800;">0 ADI$</span></p>
+          <p><strong>Wallet Address:</strong> <span id="connectedWalletAddr" style="color: var(--accent-green); font-size: 11px; word-break: break-all;">Not Connected</span></p>
+        </div>
+        <button class="btn btn-metallic" id="walletConnBtn" style="width: 100%; margin-top: 20px;" onclick="autoConnectTrustWallet()">
+          <i class="fa-solid fa-wallet"></i> Connect Trust Wallet
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- History Modal Window -->
+  <div id="historyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#141414; width:90%; max-width:400px; border-radius:16px; padding:20px; border:1px solid rgba(255,255,255,0.2); box-shadow:0 10px 25px rgba(0,0,0,0.8);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+        <h3 style="color:#fff; margin:0; font-size:18px;">Transaction History</h3>
+        <span onclick="closeHistoryModal()" style="color:#aaa; font-size:24px; cursor:pointer; font-weight:bold;">&times;</span>
+      </div>
+      <div id="historyList" style="max-height:300px; overflow-y:auto; padding-right:5px;"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('page-home', this)"><i class="fa-solid fa-house"></i><span>Home</span></div>
+    <div class="nav-item" onclick="switchTab('page-mine', this)"><i class="fa-solid fa-pickaxe"></i><span>Mine</span></div>
+    <div class="nav-item" onclick="switchTab('page-markets', this)"><i class="fa-solid fa-chart-simple"></i><span>Markets</span></div>
+    <div class="nav-item" onclick="switchTab('page-tasks', this)"><i class="fa-solid fa-list-check"></i><span>Tasks</span></div>
+    <div class="nav-item" onclick="switchTab('page-profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
+  </div>
+
+  <script>
+    // Firebase Configuration for ADI Mining Bot
+    const firebaseConfig = {
+      databaseURL: "https://adi-mining-bot-6e8f1-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Telegram WebApp Integration
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    let userId = "guest_user";
+    let userName = "Airdrop User";
+    let userBalance = 0;
+    let lastClaimDate = "";
+    let lastMineDate = "";
+    let miningEndTime = 0;
+    let miningInterval = null;
+    let walletAddress = "";
+    const todayDate = new Date().toISOString().slice(0, 10);
+
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        userId = tg.initDataUnsafe.user.id.toString();
+        userName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "User";
+      }
+    }
+
+    // Firebase Data Listener
+    const userRef = database.ref('users/' + userId);
+    userRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        userBalance = Number(data.balance) || 0;
+        lastClaimDate = data.lastClaimDate || "";
+        lastMineDate = data.lastMineDate || "";
+        miningEndTime = data.miningEndTime || 0;
+        walletAddress = data.walletAddress || "";
+      } else {
+        userRef.set({ username: userName, balance: 1000, lastClaimDate: "", lastMineDate: "", miningEndTime: 0, walletAddress: "" });
+        userBalance = 1000;
+      }
+      updateUI();
+      checkMiningState();
+      checkReferralBonus();
+      checkSubmittedProofs();
+    });
+
+    function updateUI() {
+      if (document.getElementById('userName')) document.getElementById('userName').innerText = userName;
+      if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
+      if (document.getElementById('profUser')) document.getElementById('profUser').innerText = userName;
+      if (document.getElementById('profId')) document.getElementById('profId').innerText = userId;
+
+      document.getElementById('totalBalance').innerHTML = userBalance.toLocaleString() + ' <span>ADI$</span>';
+      document.getElementById('usdValue').innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
+      document.getElementById('profBalance').innerText = userBalance.toLocaleString() + ' ADI$';
+
+      if (walletAddress) {
+        document.getElementById('connectedWalletAddr').innerText = walletAddress;
+        document.getElementById('walletConnBtn').innerHTML = '<i class="fa-solid fa-check-circle"></i> Wallet Connected';
+        document.getElementById('walletConnBtn').disabled = true;
+      }
+
+      // Update Daily Claim Button
+      const claimBtn = document.getElementById('dailyClaimBtn');
+      if (claimBtn) {
+        if (lastClaimDate === todayDate) {
+          claimBtn.innerText = "Claimed";
+          claimBtn.disabled = true;
+          claimBtn.style.opacity = "0.4";
+        } else {
+          claimBtn.innerText = "Claim";
+          claimBtn.disabled = false;
+          claimBtn.style.opacity = "1";
+        }
+      }
+
+      updateTaskButtonStatus('task1', 'task1Btn');
+      updateTaskButtonStatus('task2', 'task2Btn');
+      updateTaskButtonStatus('task3', 'task3Btn');
+    }
+
+    function updateTaskButtonStatus(taskId, btnId) {
+      database.ref('users/' + userId + '/completedTasks/' + taskId).once('value').then((snapshot) => {
+        const btn = document.getElementById(btnId);
+        if (btn && snapshot.exists()) {
+          btn.innerText = "Done";
+          btn.disabled = true;
+          btn.style.opacity = "0.4";
+        }
+      });
+    }
+
+    function switchTab(pageId, navElement) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+
+      if (navElement) {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        navElement.classList.add('active');
+      }
+    }
+
+    // Daily Claim Reward
+    function claimDailyReward() {
+      if (lastClaimDate === todayDate) {
+        showAlert("You have already claimed today's reward!");
+        return;
+      }
+
+      userBalance += 1000;
+      const historyId = 'hist_' + Date.now();
+      
+      let updates = {};
+      updates['users/' + userId + '/balance'] = userBalance;
+      updates['users/' + userId + '/lastClaimDate'] = todayDate;
+      updates['users/' + userId + '/history/' + historyId] = {
+        title: "Daily Reward",
+        amount: "+1000 ADI",
+        date: new Date().toLocaleString(),
+        type: "Daily Reward"
+      };
+
+      database.ref().update(updates).then(() => {
+        showAlert("Congratulations! Claimed 1,000 ADI$");
+      });
+    }
+
+    // Mining Function
+    function startMining() {
+      const now = Date.now();
+      if (lastMineDate === todayDate || miningEndTime > now) {
+        showAlert("Mining limit reached or session already running!");
+        return;
+      }
+
+      userBalance += 500;
+      const durationHours = 8;
+      miningEndTime = now + (durationHours * 60 * 60 * 1000);
+      const historyId = 'hist_' + Date.now();
+
+      let updates = {};
+      updates['users/' + userId + '/balance'] = userBalance;
+      updates['users/' + userId + '/lastMineDate'] = todayDate;
+      updates['users/' + userId + '/miningEndTime'] = miningEndTime;
+      updates['users/' + userId + '/history/' + historyId] = {
+        title: "Block Mining",
+        amount: "+500 ADI",
+        date: new Date().toLocaleString(),
+        type: "Mining Reward"
+      };
+
+      database.ref().update(updates).then(() => {
+        showAlert("Mined +500 ADI$ Tokens!");
+      });
+    }
+
+    function checkMiningState() {
+      clearInterval(miningInterval);
+      const now = Date.now();
+      const mineBtn = document.getElementById('mineBtn');
+
+      if (miningEndTime > now) {
+        document.getElementById('miningCircle').classList.add('mining-active');
+        if (mineBtn) {
+          mineBtn.disabled = true;
+          mineBtn.style.opacity = "0.4";
+        }
+
+        miningInterval = setInterval(() => {
+          const currentTime = Date.now();
+          const remaining = miningEndTime - currentTime;
+
+          if (remaining <= 0) {
+            clearInterval(miningInterval);
+            document.getElementById('miningCircle').classList.remove('mining-active');
+            document.getElementById('miningTimer').innerText = "Session complete. Ready to mine again!";
+            if (mineBtn) {
+              mineBtn.innerText = "⛏ Start Mining (+500 ADI$)";
+              mineBtn.disabled = false;
+              mineBtn.style.opacity = "1";
+            }
+          } else {
+            const h = Math.floor(remaining / (1000 * 60 * 60));
+            const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((remaining % (1000 * 60)) / 1000);
+            document.getElementById('miningTimer').innerText = `Time Left: ${h}h ${m}m ${s}s`;
+            if (mineBtn) mineBtn.innerText = `Mining Active (${h}h ${m}m)`;
+          }
+        }, 1000);
+      } else {
+        document.getElementById('miningCircle').classList.remove('mining-active');
+        if (mineBtn) {
+          if (lastMineDate === todayDate) {
+            mineBtn.innerText = "Mined Today";
+            mineBtn.disabled = true;
+            mineBtn.style.opacity = "0.4";
+          } else {
+            mineBtn.innerText = "⛏ Start Mining (+500 ADI$)";
+            mineBtn.disabled = false;
+            mineBtn.style.opacity = "1";
+          }
+        }
+      }
+    }
+
+    // Task Completion
+    function claimTask(taskId, rewardAmount, taskTitle, requiredCode = "") {
+      database.ref('users/' + userId + '/completedTasks/' + taskId).once('value').then((snapshot) => {
+        if (snapshot.exists()) {
+          showAlert("You have already completed this task!");
+          return;
+        }
+
+        if (requiredCode !== "") {
+          let userCode = prompt("Enter the Secret Code from the video:");
+          if (!userCode || userCode.trim().toUpperCase() !== requiredCode.toUpperCase()) {
+            showAlert("Invalid code! Please try again with the correct code.");
+            return;
+          }
+        }
+
+        userBalance += Number(rewardAmount);
+        const historyId = 'hist_' + Date.now();
+
+        let updates = {};
+        updates['users/' + userId + '/balance'] = userBalance;
+        updates['users/' + userId + '/completedTasks/' + taskId] = true;
+        updates['users/' + userId + '/history/' + historyId] = {
+          title: taskTitle,
+          amount: "+" + rewardAmount + " ADI",
+          date: new Date().toLocaleString(),
+          type: "Task Reward"
+        };
+
+        database.ref().update(updates).then(() => {
+          showAlert("Congratulations! " + rewardAmount + " ADI has been added to your balance.");
+        });
+      });
+    }
+
+    // Submit Proof ONCE ONLY Logic
+    function submitProofOnce(proofKey, taskName, reward, inputId) {
+      const inputEl = document.getElementById(inputId);
+      const proofValue = inputEl ? inputEl.value.trim() : "";
+
+      if (!proofValue) {
+        showAlert("Please enter Username or Link proof!");
+        return;
+      }
+
+      const proofRef = database.ref('users/' + userId + '/submittedProofs/' + proofKey);
+      proofRef.once('value').then((snapshot) => {
+        if (snapshot.exists()) {
+          showAlert("You have already submitted proof for this task once!");
+          return;
+        }
+
+        let updates = {};
+        updates['users/' + userId + '/submittedProofs/' + proofKey] = proofValue;
+        updates['pending_tasks/' + userId + '_' + proofKey] = {
+          userId: userId,
+          username: userName,
+          taskName: taskName,
+          reward: reward,
+          proof: proofValue,
+          timestamp: new Date().toLocaleString()
+        };
+
+        database.ref().update(updates).then(() => {
+          showAlert("Proof submitted successfully! It can only be submitted ONCE.");
+          markProofAsSubmitted(proofKey, inputId);
+        });
+      });
+    }
+
+    function checkSubmittedProofs() {
+      database.ref('users/' + userId + '/submittedProofs').once('value').then((snapshot) => {
+        const proofs = snapshot.val();
+        if (proofs) {
+          if (proofs.proof_tg) markProofAsSubmitted('proof_tg', 'proof-tg');
+          if (proofs.proof_x) markProofAsSubmitted('proof_x', 'proof-x');
+          if (proofs.proof_fb) markProofAsSubmitted('proof_fb', 'proof-fb');
+          if (proofs.proof_yt) markProofAsSubmitted('proof_yt', 'proof-yt');
+          if (proofs.proof_ins) markProofAsSubmitted('proof_ins', 'proof-ins');
+        }
+      });
+    }
+
+    function markProofAsSubmitted(proofKey, inputId) {
+      const btnId = 'btn-' + inputId;
+      const btn = document.getElementById(btnId);
+      const input = document.getElementById(inputId);
+
+      if (btn) {
+        btn.innerText = "Submitted";
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+      }
+      if (input) {
+        input.disabled = true;
+        input.placeholder = "Proof Already Submitted";
+      }
+    }
+
+    // Dynamic Tasks Handler
+    database.ref('custom_tasks').on('value', (snapshot) => {
+      const container = document.getElementById('dynamicTasksContainer');
+      if (!container) return;
+      container.innerHTML = "";
+      const tasks = snapshot.val();
+      if (tasks) {
+        Object.keys(tasks).forEach(key => {
+          const t = tasks[key];
+          container.innerHTML += `
+            <div class="task-card">
+              <div class="task-header">
+                <span class="task-title"><i class="fa-solid fa-play-circle"></i> ${t.title}</span>
+                <span class="task-reward">+${t.reward} ADI$</span>
+              </div>
+              <a href="${t.link}" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px; display:inline-block;">Open Link</a>
+              <input type="text" id="proof-${key}" class="task-input" placeholder="${t.type === 'Screenshot' ? 'Paste Screenshot Link' : 'Enter Username'}">
+              <button class="btn btn-metallic" id="btn-proof-${key}" style="width:100%; padding:8px;" onclick="submitProofOnce('proof_${key}', '${t.title}', ${t.reward}, 'proof-${key}')">Submit Proof</button>
+            </div>
+          `;
+          database.ref('users/' + userId + '/submittedProofs/proof_' + key).once('value').then((sn) => {
+            if (sn.exists()) markProofAsSubmitted('proof_' + key, 'proof-' + key);
+          });
+        });
+      }
+    });
+
+    // Auto Trust Wallet Provider Connect Integration
+    async function autoConnectTrustWallet() {
+      if (walletAddress) {
+        showAlert("Wallet already connected: " + walletAddress);
+        return;
+      }
+
+      if (window.ethereum) {
+        try {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          await provider.send("eth_requestAccounts", []);
+          const signer = provider.getSigner();
+          const address = await signer.getAddress();
+
+          walletAddress = address;
+          database.ref('users/' + userId + '/walletAddress').set(address).then(() => {
+            showAlert("Trust Wallet connected: " + address);
+            updateUI();
+          });
+        } catch (error) {
+          showAlert("Wallet Connection Cancelled or Failed!");
+        }
+      } else {
+        // Fallback for Web3-less Browsers/Telegram Mini App (Deep Link)
+        const currentUrl = encodeURIComponent(window.location.href);
+        const trustDeepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${currentUrl}`;
+        
+        if (tg && tg.openLink) {
+          tg.openLink(trustDeepLink);
+        } else {
+          window.location.href = trustDeepLink;
+        }
+      }
+    }
+
+    // Referral System Share (+10 ADI)
+    function shareReferralLink() {
+      const botUsername = "ADI_Mining_Bot";
+      const refLink = `https://t.me/${adiairdrops}?start=${userId}`;
+
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent('Join ADI Airdrop and earn 10 ADI bonus!')}`;
+        window.Telegram.WebApp.openTelegramLink(shareUrl);
+      } else {
+        navigator.clipboard.writeText(refLink).then(() => {
+          showAlert("Referral link copied to clipboard!\n" + refLink);
+        }).catch(() => {
+          prompt("Copy your referral link:", refLink);
+        });
+      }
+    }
+
+    function checkReferralBonus() {
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+        const referrerId = tg.initDataUnsafe.start_param;
+
+        if (referrerId && referrerId !== userId) {
+          database.ref('users/' + userId + '/referredBy').once('value').then((snapshot) => {
+            if (!snapshot.exists()) {
+              database.ref('users/' + referrerId + '/balance').transaction((currentBalance) => {
+                return (currentBalance || 0) + 10;
+              });
+
+              const histId = 'hist_' + Date.now();
+              database.ref('users/' + referrerId + '/history/' + histId).set({
+                title: "Referral Bonus",
+                amount: "+10 ADI",
+                date: new Date().toLocaleString(),
+                type: "Referral Reward"
+              });
+
+              database.ref('users/' + userId + '/referredBy').set(referrerId);
+            }
+          });
+        }
+      }
+    }
+
+    function openHistoryModal() {
+      document.getElementById('historyModal').style.display = 'flex';
+      loadHistory();
+    }
+
+    function closeHistoryModal() {
+      document.getElementById('historyModal').style.display = 'none';
+    }
+
+    function loadHistory() {
+      const historyListElement = document.getElementById('historyList');
+      if (!historyListElement) return;
+
+      historyListElement.innerHTML = "<p style='color:#888; text-align:center;'>Loading...</p>";
+
+      database.ref('users/' + userId + '/history').on('value', (snapshot) => {
+        const historyData = snapshot.val();
+        historyListElement.innerHTML = "";
+
+        if (historyData) {
+          Object.keys(historyData).reverse().forEach((key) => {
+            const item = historyData[key];
+            const historyCard = `
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:12px; background:#1b1b1b; border-radius:10px; border:1px solid rgba(255,255,255,0.1);">
+                <div>
+                  <div style="font-weight:bold; color:#fff; font-size:14px;">${item.title}</div>
+                  <div style="font-size:11px; color:#888; margin-top:3px;">${item.date}</div>
+                </div>
+                <div style="color:#e2e8f0; font-weight:bold; font-size:14px;">${item.amount}</div>
+              </div>
+            `;
+            historyListElement.innerHTML += historyCard;
+          });
+        } else {
+          historyListElement.innerHTML = "<p style='color:#888; text-align:center;'>No transaction history found.</p>";
+        }
+      });
+    }
+
+    function showAlert(msg) {
+      if (tg && tg.showAlert) {
+        tg.showAlert(msg);
+      } else {
+        alert(msg);
+      }
+    }
+  </script>
+</body>
+</html>
