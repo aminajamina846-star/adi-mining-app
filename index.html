@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>$ADI Airdrop Mini App</title>
+  <title>$ADI Airdrop Bot</title>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -12,37 +12,40 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0d1117; color: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: #0b0e14; color: #ffffff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; user-select: none; }
     
-    .container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; }
+    .container { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 90px; }
     .page { display: none; }
     .page.active { display: block; }
 
-    /* Profile Header */
-    .profile-card { background: #161b22; border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 12px; margin-bottom: 20px; border: 1px solid #30363d; }
-    .avatar { width: 45px; height: 45px; background: #238636; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
+    /* Header Bar */
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .avatar-circle { width: 40px; height: 40px; background: #222938; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid #2d3748; }
+    
+    /* Cards */
+    .card { background: #131722; border: 1px solid #1e2640; border-radius: 16px; padding: 20px; margin-bottom: 16px; text-align: center; }
+    .balance-amount { font-size: 36px; font-weight: 800; color: #ffffff; margin: 10px 0 5px; }
+    .balance-amount span { font-size: 18px; color: #3b82f6; }
+    .usd-value { color: #10b981; font-weight: 600; font-size: 14px; background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 20px; display: inline-block; }
 
-    /* Balance Section */
-    .balance-card { text-align: center; background: linear-gradient(135deg, #1f242d, #161b22); padding: 25px; border-radius: 16px; border: 1px solid #30363d; margin-bottom: 20px; }
-    .balance-card h1 { font-size: 32px; color: #58a6ff; margin-bottom: 5px; }
-    .balance-card p { color: #8b949e; font-size: 14px; }
+    /* Buttons */
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .btn { background: #1e2640; color: #ffffff; border: 1px solid #2d3748; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:active { transform: scale(0.96); }
+    .btn-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; }
+    .btn-pending { background: #d97706; border: none; cursor: not-allowed; }
+    .btn-completed { background: #059669; border: none; cursor: not-allowed; }
 
-    /* Actions & Buttons */
-    .btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
-    .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; background: #238636; color: white; }
-    .btn:active { transform: scale(0.98); }
-    .btn-metallic { background: linear-gradient(135deg, #238636, #2ea043); }
-    .btn-pending { background: #d29922; cursor: not-allowed; }
-    .btn-completed { background: #3fb950; cursor: not-allowed; }
+    /* Inputs */
+    .input-field { width: 100%; background: #0b0e14; border: 1px solid #1e2640; border-radius: 12px; padding: 14px; color: #fff; margin-bottom: 12px; font-size: 14px; outline: none; }
+    .input-field:focus { border-color: #2563eb; }
 
-    /* Form Inputs */
-    .input-box { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: white; margin-bottom: 10px; }
-
-    /* Bottom Navigation */
-    .navbar { position: fixed; bottom: 0; width: 100%; background: #161b22; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #30363d; }
-    .nav-item { color: #8b949e; text-align: center; font-size: 12px; cursor: pointer; flex: 1; }
-    .nav-item.active { color: #58a6ff; font-weight: bold; }
+    /* Navigation */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #131722; border-top: 1px solid #1e2640; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 11px; cursor: pointer; flex: 1; gap: 4px; }
+    .nav-item.active { color: #3b82f6; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -50,65 +53,74 @@
   <div class="container">
     <!-- Home Page -->
     <div id="page-home" class="page active">
-      <div class="profile-card">
-        <div class="avatar" id="userAvatar">U</div>
-        <div>
-          <h3 id="userName" style="font-size: 16px;">Loading...</h3>
-          <p style="font-size: 12px; color: #8b949e;">ID: <span id="profId">...</span></p>
+      <div class="header-bar">
+        <div class="user-info">
+          <div class="avatar-circle" id="userAvatar">U</div>
+          <div>
+            <h4 id="userName">User</h4>
+            <span style="font-size: 11px; color: #64748b;">ID: <span id="profId">...</span></span>
+          </div>
         </div>
       </div>
 
-      <div class="balance-card">
-        <p>Total Balance</p>
-        <h1 id="totalBalance">0 <span>ADI$</span></h1>
-        <p id="usdValue">≈ $0.00 USD</p>
+      <div class="card">
+        <span style="color: #94a3b8; font-size: 13px;">Total Balance</span>
+        <div class="balance-amount" id="totalBalance">0 <span>ADI$</span></div>
+        <div class="usd-value" id="usdValue">≈ $0.00 USD</div>
       </div>
 
-      <div class="btn-group">
-        <button class="btn btn-metallic" id="claimBtn" onclick="claimDailyReward()">Daily Reward (+1,000)</button>
-        <button class="btn btn-metallic" onclick="startMining()">Start Mining (+500)</button>
+      <div class="action-grid">
+        <button class="btn btn-primary" id="claimBtn" onclick="claimDailyReward()">🎁 Daily Claim</button>
+        <button class="btn" onclick="startMining()">⛏️ Start Mining</button>
       </div>
     </div>
 
     <!-- Mine Page -->
     <div id="page-mine" class="page">
-      <h2>Mining Center</h2>
-      <p style="color: #8b949e; margin: 10px 0 20px;">Earn 500 $ADI Tokens daily by clicking below.</p>
-      <button class="btn btn-metallic" style="width: 100%; padding: 20px;" onclick="startMining()">⛏️ Mine 500 $ADI</button>
+      <h3 style="margin-bottom: 15px;">Daily Mining</h3>
+      <div class="card">
+        <p style="color: #94a3b8; margin-bottom: 15px; font-size: 14px;">Claim 500 $ADI Tokens every 24 hours.</p>
+        <button class="btn btn-primary" style="width: 100%;" onclick="startMining()">⛏️ Mine 500 $ADI</button>
+      </div>
     </div>
 
     <!-- Markets Page -->
     <div id="page-markets" class="page">
-      <h2>Market Overview</h2>
-      <p style="color: #8b949e; margin-top: 10px;">Token Listing & Trading coming soon on DEX/CEX!</p>
+      <h3 style="margin-bottom: 15px;">Market Overview</h3>
+      <div class="card">
+        <div style="font-size: 20px; font-weight: bold; color: #10b981;">$0.000100</div>
+        <div style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Estimated Listing Price</div>
+      </div>
     </div>
 
     <!-- Tasks Page -->
     <div id="page-tasks" class="page">
-      <h2>Tasks & Rewards</h2>
-      <div style="background: #161b22; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #30363d;">
-        <h4>Join Telegram Announcement Channel</h4>
-        <p style="font-size: 12px; color: #8b949e; margin-bottom: 10px;">Reward: +2,000 $ADI</p>
-        <button id="task1Btn" class="btn" onclick="submitTask('task1', 2000, 'https://t.me/adiofficialannusment')">Join & Submit</button>
+      <h3 style="margin-bottom: 15px;">Tasks & Rewards</h3>
+      <div class="card" style="text-align: left;">
+        <h4>Join Announcement Channel</h4>
+        <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 12px;">Reward: +2,000 $ADI</p>
+        <button id="task1Btn" class="btn btn-primary" style="width: 100%;" onclick="submitTask('task1', 2000, 'https://t.me/adiofficialannusment')">Join & Submit</button>
       </div>
     </div>
 
     <!-- Profile Page -->
     <div id="page-profile" class="page">
-      <h2>Profile & Wallet</h2>
-      <div style="background: #161b22; padding: 15px; border-radius: 8px; margin: 15px 0; border: 1px solid #30363d;">
-        <p><strong>Username:</strong> <span id="profUser">...</span></p>
-        <p><strong>Balance:</strong> <span id="profBalance">0 ADI$</span></p>
+      <h3 style="margin-bottom: 15px;">Profile Settings</h3>
+      <div class="card" style="text-align: left;">
+        <p style="margin-bottom: 8px;"><strong>Username:</strong> <span id="profUser">...</span></p>
+        <p><strong>Total Earned:</strong> <span id="profBalance" style="color: #3b82f6;">0 ADI$</span></p>
       </div>
 
-      <h4>Connect Wallet</h4>
-      <input type="text" id="walletInput" class="input-box" placeholder="Enter TON / BEP20 Wallet Address">
-      <button class="btn" style="width: 100%;" onclick="connectOrSaveWallet()">Save Wallet</button>
+      <div class="card" style="text-align: left;">
+        <h4 style="margin-bottom: 10px;">Withdrawal Wallet</h4>
+        <input type="text" id="walletInput" class="input-field" placeholder="Enter TON / BEP20 Wallet Address">
+        <button class="btn btn-primary" style="width: 100%;" onclick="connectOrSaveWallet()">Save Wallet</button>
+      </div>
     </div>
   </div>
 
   <!-- Bottom Navigation -->
-  <div class="navbar">
+  <div class="bottom-nav">
     <div class="nav-item active" onclick="switchTab('page-home', this)">Home</div>
     <div class="nav-item" onclick="switchTab('page-mine', this)">Mine</div>
     <div class="nav-item" onclick="switchTab('page-markets', this)">Markets</div>
@@ -116,16 +128,16 @@
     <div class="nav-item" onclick="switchTab('page-profile', this)">Profile</div>
   </div>
 
-  <!-- App Logic Code -->
+  <!-- App Script Logic -->
   <script>
-    // ১. ফায়ারবেস কনফিগারেশন
+    // 1. Firebase Config
     const firebaseConfig = {
       databaseURL: "https://visit-780ae-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // ২. টেলিগ্রাম ইউজার ডাটা ইনিশিয়ালাইজেশন
+    // 2. Telegram WebApp Init
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     let userId = "guest_user";
     let userName = "Airdrop User";
@@ -147,7 +159,7 @@
 
     const todayDate = new Date().toISOString().slice(0, 10);
 
-    // ৩. ইউজার ইন্টারফেস সেটআপ
+    // 3. UI Setup
     const nameElem = document.getElementById('userName');
     if (nameElem) nameElem.innerText = userName;
     
@@ -160,7 +172,7 @@
     const profIdElem = document.getElementById('profId');
     if (profIdElem) profIdElem.innerText = userId;
 
-    // ৪. IP Anti-Cheat System
+    // 4. Anti-Cheat & IP Detection
     fetch('https://api.ipify.org?format=json')
       .then(res => res.json())
       .then(data => {
@@ -189,14 +201,14 @@
       isBanned = true;
       database.ref('users/' + userId).update({ banned: true, banReason: reason });
       document.body.innerHTML = `
-        <div style="text-align:center; padding: 50px 20px; color: #ff4d4d; font-family: sans-serif;">
+        <div style="text-align:center; padding: 50px 20px; color: #ef4444; font-family: sans-serif;">
           <h2>🚫 ACCOUNT BANNED</h2>
-          <p style="color: #ccc;">${reason}</p>
+          <p style="color: #94a3b8; margin-top: 10px;">${reason}</p>
         </div>
       `;
     }
 
-    // ৫. ফায়ারবেস থেকে লাইভ ডাটা সিঙ্ক
+    // 5. Firebase Realtime Listener
     const userRef = database.ref('users/' + userId);
     userRef.on('value', (snapshot) => {
       if (isBanned) return;
@@ -223,7 +235,7 @@
       updateTasksUI();
     });
 
-    // ৬. UI ব্যালেন্স আপডেট
+    // 6. Balance UI Update
     function updateUI() {
       const totalBal = document.getElementById('totalBalance');
       if (totalBal) totalBal.innerHTML = userBalance.toLocaleString() + ' <span>ADI$</span>';
@@ -235,7 +247,7 @@
       if (profBal) profBal.innerText = userBalance.toLocaleString() + ' ADI$';
     }
 
-    // ৭. পেজ নেভিগেশন
+    // 7. Navigation
     function switchTab(pageId, navElement) {
       if (isBanned) return;
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -248,7 +260,7 @@
       }
     }
 
-    // ৮. Daily Claim (১,০০০ $ADI)
+    // 8. Daily Reward (1,000 $ADI)
     function claimDailyReward() {
       if (isBanned) return;
       if (lastClaimDate === todayDate) {
@@ -264,7 +276,7 @@
       showAlert('Success! Claimed 1,000 ADI$');
     }
 
-    // ৯. Daily Mining (দিনে ১ বার - ৫০০ $ADI)
+    // 9. Daily Mining (500 $ADI)
     function startMining() {
       if (isBanned) return;
       if (lastMineDate === todayDate) {
@@ -280,7 +292,7 @@
       showAlert('Mined +500 ADI$ Tokens!');
     }
 
-    // ১০. Task Submission
+    // 10. Task Handler
     function submitTask(taskId, reward, link) {
       if (isBanned) return;
       window.open(link, '_blank');
@@ -310,7 +322,7 @@
       });
     }
 
-    // ১১. Wallet Address Save
+    // 11. Wallet Handler
     function connectOrSaveWallet() {
       if (isBanned) return;
       const walletInput = document.getElementById('walletInput');
@@ -323,7 +335,7 @@
       }
     }
 
-    // ১২. Alert System
+    // 12. Alert Helper
     function showAlert(msg) {
       if (tg && tg.showAlert) { 
         tg.showAlert(msg); 
