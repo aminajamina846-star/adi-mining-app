@@ -110,27 +110,29 @@
       <div class="card">
         <div class="balance-header">
           <span class="balance-title">TOTAL BALANCE</span>
-          <button class="history-btn" onclick="openModal('History Feature Coming Soon')">History &gt;</button>
-        </div> <div id="historyList">
-  <!-- ফায়ারবেস থেকে হিস্ট্রি এখানে অটোমেটিক লোড হবে -->
-        </div><!-- History Section Header -->
-<h3 style="color: #fff; margin-top: 15px;">Transaction History</h3>
+          <!-- History Button -->
+<button class="history-btn" onclick="openHistoryModal()" style="background:#232a3e; color:#8a9ec4; border:none; padding:6px 12px; border-radius:15px; font-size:12px; cursor:pointer;">
+  History >
+</button>
 
-<!-- Firebase History Container -->
-<div id="historyList" style="max-height: 250px; overflow-y: auto; padding: 5px;">
-  <!-- ফায়ারবেস থেকে হিস্ট্রি এখানে অটোমেটিক লোড হবে -->
+<!-- Separate History Modal (Pop-up Page) -->
+<div id="historyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:#161c28; width:90%; max-width:400px; border-radius:16px; padding:20px; border:1px solid #2a354d; box-shadow:0 10px 25px rgba(0,0,0,0.5);">
+    
+    <!-- Modal Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #2a354d; padding-bottom:10px;">
+      <h3 style="color:#fff; margin:0; font-size:18px;">Transaction History</h3>
+      <span onclick="closeHistoryModal()" style="color:#aaa; font-size:24px; cursor:pointer; font-weight:bold;">&times;</span>
+    </div>
+
+    <!-- History Container -->
+    <div id="historyList" style="max-height:300px; overflow-y:auto; padding-right:5px;">
+      <!-- Firebase dynamic history will load here -->
+    </div>
+
+  </div>
 </div>
-        function updateUI() {
-  if (document.getElementById('userName')) document.getElementById('userName').innerText = userName;
-  if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
-  if (document.getElementById('profUser')) document.getElementById('profUser').innerText = userName;
-  if (document.getElementById('profId')) document.getElementById('profId').innerText = userId;
-  if (document.getElementById('totalBalance')) document.getElementById('totalBalance').innerText = userBalance.toLocaleString() + " ADI";
-  if (document.getElementById('profBalance')) document.getElementById('profBalance').innerText = userBalance.toLocaleString() + " ADI";
-  
-  // History Auto Load Call
-  loadHistory();
-}
+          
         
         
         <div class="balance-val"><span id="totalBalance">0</span> <span>ADI$</span></div>
@@ -168,7 +170,11 @@
           <span>Markets</span>
         </div>
       </div>
-
+<!-- Referral / Invite Button -->
+<button class="invite-btn" onclick="shareReferralLink()" style="background:#0088cc; color:#fff; border:none; padding:10px 18px; border-radius:10px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:8px;">
+  👥 Invite Friends (+10 ADI)
+</button>
+        
       <div class="card">
         <div class="market-header">
           <span class="balance-title">MARKET OVERVIEW</span>
@@ -345,18 +351,18 @@
       }
       updateUI();
     });
-  // COMPLETE TASK WITH HISTORY TRACKING
+  /  // COMPLETE TASK WITH HISTORY TRACKING (ENGLISH ALERT)
   function claimTask(taskId, rewardAmount, taskTitle, requiredCode = "") {
     database.ref('users/' + userId + '/completedTasks/' + taskId).once('value').then((snapshot) => {
       if (snapshot.exists()) {
-        alert("আপনি ইতিমধ্যে এই টাস্কটি কমপ্লিট করেছেন!");
+        alert("You have already completed this task!");
         return;
       }
 
       if (requiredCode !== "") {
-        let userCode = prompt("Video-তে পাওয়া Secret Code-টি দিন:");
+        let userCode = prompt("Enter the Secret Code from the video:");
         if (!userCode || userCode.trim().toUpperCase() !== requiredCode.toUpperCase()) {
-          alert("ভুল কোড! সঠিক কোড দিয়ে আবার চেষ্টা করুন।");
+          alert("Invalid code! Please try again with the correct code.");
           return;
         }
       }
@@ -378,13 +384,83 @@
 
       database.ref().update(updates).then(() => {
         updateUI();
-        alert("অভিনন্দন! " + rewardAmount + " ADI আপনার ব্যালেন্সে যোগ হয়েছে।");
+        alert("Congratulations! " + rewardAmount + " ADI has been added to your balance.");
       }).catch((error) => {
         alert("Database error: " + error.message);
       });
     });
   }
+      // Open History Modal & Load Data
+  function openHistoryModal() {
+    document.getElementById('historyModal').style.display = 'flex';
+    loadHistory();
+  }
 
+  // Close History Modal
+  function closeHistoryModal() {
+    document.getElementById('historyModal').style.display = 'none';
+  }
+
+  // Fetch History from Firebase
+  function loadHistory() {
+    const historyListElement = document.getElementById('historyList');
+    if (!historyListElement) return;
+
+    historyListElement.innerHTML = "<p style='color:#888; text-align:center;'>Loading...</p>";
+
+    database.ref('users/' + userId + '/history').on('value', (snapshot) => {
+      const historyData = snapshot.val();
+      historyListElement.innerHTML = "";
+
+      if (historyData) {
+        Object.keys(historyData).reverse().forEach((key) => {
+          const item = historyData[key];
+          const historyCard = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:12px; background:#1f2838; border-radius:10px; border:1px solid #2d3a50;">
+              <div>
+                <div style="font-weight:bold; color:#fff; font-size:14px;">${item.title}</div>
+                <div style="font-size:11px; color:#7e8b9b; margin-top:3px;">${item.date}</div>
+              </div>
+              <div style="color:#4CAF50; font-weight:bold; font-size:14px;">${item.amount}</div>
+            </div>
+          `;
+          historyListElement.innerHTML += historyCard;
+        });
+      } else {
+        historyListElement.innerHTML = "<p style='color:#888; text-align:center;'>No history found.</p>";
+      }
+    });
+    }
+          // Check & Reward Referrer on First Login
+  function checkReferralBonus() {
+    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+      const referrerId = tg.initDataUnsafe.start_param;
+
+      if (referrerId && referrerId !== userId) {
+        database.ref('users/' + userId + '/referredBy').once('value').then((snapshot) => {
+          if (!snapshot.exists()) {
+            // Give 10 ADI to the Referrer
+            database.ref('users/' + referrerId + '/balance').transaction((currentBalance) => {
+              return (currentBalance || 0) + 10;
+            });
+
+            // Add History Record for Referrer
+            const histId = 'hist_' + Date.now();
+            database.ref('users/' + referrerId + '/history/' + histId).set({
+              title: "Referral Bonus",
+              amount: "+10 ADI",
+              date: new Date().toLocaleString(),
+              type: "Referral Reward"
+            });
+
+            // Save referredBy status for new user
+            database.ref('users/' + userId + '/referredBy').set(referrerId);
+          }
+        });
+      }
+    }
+    }
+      
   // FETCH AND DISPLAY HISTORY IN UI
   function loadHistory() {
     const historyListElement = document.getElementById('historyList');
@@ -414,13 +490,18 @@
     });
         }
                   
-    function updateUI() {
-      document.getElementById('totalBalance').innerText = userBalance.toLocaleString();
-      document.getElementById('usdValue').innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
-      document.getElementById('profBalance').innerText = userBalance.toLocaleString() + ' ADI$';
+      function updateUI() {
+    if (document.getElementById('userName')) document.getElementById('userName').innerText = userName;
+    if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
+    if (document.getElementById('profUser')) document.getElementById('profUser').innerText = userName;
+    if (document.getElementById('profId')) document.getElementById('profId').innerText = userId;
+    if (document.getElementById('totalBalance')) document.getElementById('totalBalance').innerText = userBalance.toLocaleString() + " ADI";
+    if (document.getElementById('profBalance')) document.getElementById('profBalance').innerText = userBalance.toLocaleString() + " ADI";
+    if (document.getElementById('usdValue')) document.getElementById('usdValue').innerText = "= $" + (userBalance * 0.0001).toFixed(2);
 
-      // Update Daily Claim Button
-      const claimBtn = document.getElementById('dailyClaimBtn');
+    // Update Daily Claim Button
+    const claimBtn = document.getElementById('dailyClaimBtn');
+    if (claimBtn) {
       if (lastClaimDate === todayDate) {
         claimBtn.innerText = "Claimed";
         claimBtn.disabled = true;
@@ -428,21 +509,43 @@
         claimBtn.innerText = "Claim";
         claimBtn.disabled = false;
       }
+    }
 
-      // Update Mining Button
-      const mineBtn = document.getElementById('mineBtn');
+    // Update Mining Button
+    const mineBtn = document.getElementById('mineBtn');
+    if (mineBtn) {
       if (lastMineDate === todayDate) {
         mineBtn.innerText = "Mined Today";
         mineBtn.disabled = true;
       } else {
-        mineBtn.innerText = "► Start Mining (+500 ADI$)";
+        mineBtn.innerText = "⛏ Start Mining (+500 ADI$)";
         mineBtn.disabled = false;
       }
+    }
 
-      // Update Tasks Buttons
+    // Update Tasks Buttons
+    if (typeof updateTaskButton === "function") {
       updateTaskButton('task1', 'task1Btn');
       updateTaskButton('task2', 'task2Btn');
     }
+  }
+
+  // Open & Close History Modal Functions
+  function openHistoryModal() {
+    const modal = document.getElementById('historyModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      loadHistory();
+    }
+  }
+
+  function closeHistoryModal() {
+    const modal = document.getElementById('historyModal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
 
     function updateTaskButton(taskId, btnId) {
       const btn = document.getElementById(btnId);
