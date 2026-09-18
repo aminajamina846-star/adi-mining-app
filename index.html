@@ -433,17 +433,12 @@
       background: var(--silver-gradient);
       box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
     }
-
-    
   </style>
 </head>
 <body>
 
   <div class="app-container">
-
-  <!-- Remote Injected Code Dynamic Container -->
-  <div id="remoteDynamicFeatures"></div>
-
+    
     <!-- Top Bar -->
     <div class="top-bar">
       <div class="profile-info">
@@ -453,9 +448,8 @@
           <p id="userLevel"><i class="fa-solid fa-shield-halved" style="color: var(--accent-silver);"></i> Verified Miner</p>
         </div>
       </div>
-      <div class="icon-btn" onclick="showNotifications()" style="cursor: pointer;">
-  <i class="fa-regular fa-bell"></i>
-      </div>
+      <div class="icon-btn" onclick="showAlert('No new notifications')"><i class="fa-regular fa-bell"></i></div>
+    </div>
 
     <!-- 1. HOME PAGE -->
     <div id="page-home" class="page active">
@@ -471,14 +465,12 @@
           <button class="btn btn-dark" onclick="autoConnectTrustWallet()"><i class="fa-solid fa-wallet"></i> Wallet</button>
         </div>
       </div>
-  
-      
 
       <!-- Invite Friends Button -->
-      <button class="btn btn-metallic" onclick="switchTab('page-referral', this)">
-  <i class="fa-solid fa-user-plus"></i> Invite Friends (+10 ADI)
+      <button class="btn btn-metallic" onclick="shareReferralLink()" style="width: 100%; margin-bottom: 16px; padding: 14px; font-size: 13px;">
+        <i class="fa-solid fa-users"></i> Invite Friends (+10 ADI)
       </button>
-      
+
       <!-- Daily Reward Card -->
       <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
         <div>
@@ -541,7 +533,8 @@
             <span class="price-badge">+1.56%</span>
           </div>
         </div>
-      
+      </div>
+    </div>
 
     <!-- 2. MINE PAGE -->
     <div id="page-mine" class="page">
@@ -617,11 +610,10 @@
         <input type="text" id="proof-tg" class="task-input" placeholder="Enter Telegram Username (@username)">
         <button class="btn btn-metallic" id="btn-proof-tg" style="width:100%; padding:8px;" onclick="submitProofOnce('proof_tg', 'Telegram Channel', 10, 'proof-tg')">Submit Proof</button>
       </div>
-
-        <div class="task-card">
+<div class="task-card">
         <div class="task-header">
-          <span class="task-title"><i class="fa-brands fa-x-twitter"></i> Follow X</span>
-          <span class="task-reward">+20 ADI$</span>
+          <span class="task-title"><i class="fa-brands fa-X" style="color:#229ED9;"></i> Twitter X </span>
+          <span class="task-reward">+10 ADI$</span>
         </div>
         <a href="https://x.com/adiairdrops" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px; display:inline-block;">1. Follow X Profile</a>
         <input type="text" id="proof-x" class="task-input" placeholder="Enter X Username (@username)">
@@ -677,7 +669,6 @@
     </div>
 
   </div>
-<!-- REFERRAL PAGE CONTAINER -->
 
   <!-- History Modal Window -->
   <div id="historyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
@@ -700,78 +691,12 @@
   </div>
 
   <script>
-      // Firebase Configuration for ADI Mining
-  const firebaseConfig = {
-    databaseURL: "https://adi-mining-bot-6e8f1-default-rtdb.firebaseio.com"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
-
-  // -------------------------------------------------------------
-  // Dynamic Remote Code Injector Listener (এটিকে এখানে বসান)
-  // -------------------------------------------------------------
-  database.ref('remote_features').on('value', (snapshot) => {
-    const container = document.getElementById('remoteDynamicFeatures');
-    if(!container) return;
-    
-    container.innerHTML = ""; // আগের লোড হওয়া কোড ক্লিয়ার করবে
-    const features = snapshot.val();
-    
-    if(features) {
-      Object.keys(features).forEach(key => {
-        const featureBox = document.createElement('div');
-        featureBox.id = 'feature_' + key;
-        featureBox.innerHTML = features[key].code;
-        container.appendChild(featureBox);
-
-        // পেস্ট করা কোডের ভেতর কোনো Script থাকলে তা এক্সিকিউট করবে
-        const scripts = featureBox.getElementsByTagName('script');
-        for(let script of scripts) {
-          eval(script.innerText);
-        }
-      });
-    }
-  });
-    // ১. নোটিফিকেশন ভ্যারিয়েবল ডিক্লেয়ারেশন
-let liveNotificationMsg = "No new notifications right now.";
-
-function switchTab(pageId, element) {
-  // ১. সব .page ক্লাসের সেকশন হাইড করা
-  const pages = document.querySelectorAll('.page');
-  pages.forEach(p => p.style.display = 'none');
-
-  // ২
-
-
-// ৩. রেফারেল লিংক কপি ফাংশন
-function copyRefLink() {
-  const refInput = document.getElementById("refLinkInput");
-  if (!refInput) return;
-
-  refInput.select();
-  refInput.setSelectionRange(0, 99999);
-
-  navigator.clipboard.writeText(refInput.value)
-    .then(() => alert("✅ Referral link copied to clipboard!"))
-    .catch(() => {
-      document.execCommand('copy');
-      alert("✅ Referral link copied!");
-    });
-    }
-                                    
-// Firebase Listener for Live Notification
-database.ref('app_notification').on('value', (snapshot) => {
-  const data = snapshot.val();
-  if(data && data.message) {
-    liveNotificationMsg = data.message;
-  }
-});
-
-// Function to trigger on Bell Icon Click
-function showNotifications() {
-  alert("🔔 Notification:\n\n" + liveNotificationMsg);
-    }
-          
+    // Firebase Configuration for ADI Mining Bot
+    const firebaseConfig = {
+      databaseURL: "https://adi-mining-bot-6e8f1-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
     // Telegram WebApp Integration
     const tg = window.Telegram ? window.Telegram.WebApp : null;
@@ -1133,13 +1058,12 @@ function showNotifications() {
         }
       }
     }
-
-    // Referral System Share (+10 ADI)
+   // Referral System Share (+10 ADI)
     function shareReferralLink() {
       const botUsername = "ADI_Mining_Bot";
-      const refLink = `https://t.me/${adiairdrops}?start=${userId}`;
-
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+      const refLink = `https://t.me/${botUsername}?start=${userId}`;
+      
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent('Join ADI Airdrop and earn 10 ADI bonus!')}`;
         window.Telegram.WebApp.openTelegramLink(shareUrl);
       } else {
