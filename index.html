@@ -751,8 +751,7 @@
     // ১. নোটিফিকেশন ভ্যারিয়েবল ডিক্লেয়ারেশন
 let liveNotificationMsg = "No new notifications right now.";
 
-// ২. পেজ সুইচিং (Tab Switching) ফাংশন
-// ২. পেজ সুইচিং (Tab Switching) ফাংশন
+/// ২. পেজ সুইচিং (Tab Switching) সেফ ফাংশন
 function switchTab(pageId, element) {
   // সব পেজ হাইড (Hide) করা
   const pages = document.querySelectorAll('.page');
@@ -763,11 +762,11 @@ function switchTab(pageId, element) {
   if (targetPage) {
     targetPage.style.display = 'block';
   } else {
-    console.error("Page not found: " + pageId);
+    console.error("Page ID not found: " + pageId);
   }
 
-  // বটম নেভিগেশনের অ্যাক্টিভ আইকন হাইলাইট পরিবর্তন করা
-  if (element) {
+  // যদি বটম নেভিগেশন থেকে element পাঠানো হয় কেবল তখনই অ্যাক্টিভ ক্লাস চেঞ্জ হবে
+  if (element && element.classList) {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => item.classList.remove('active'));
     element.classList.add('active');
