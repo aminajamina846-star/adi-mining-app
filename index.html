@@ -111,7 +111,10 @@
         <div class="balance-header">
           <span class="balance-title">TOTAL BALANCE</span>
           <button class="history-btn" onclick="openModal('History Feature Coming Soon')">History &gt;</button>
+        </div> <div id="historyList">
+  <!-- ফায়ারবেস থেকে হিস্ট্রি এখানে অটোমেটিক লোড হবে -->
         </div>
+        
         <div class="balance-val"><span id="totalBalance">0</span> <span>ADI$</span></div>
         <div class="usd-val" id="usdValue">≈ $0.00 USD</div>
         <div class="btn-row">
@@ -239,6 +242,10 @@
       </div>
     </div>
   </div>
+  <div id="historyList">
+  <!-- ফায়ারবেস থেকে হিস্ট্রি এখানে অটোমেটিক লোড হবে -->
+  </div>
+  
 
   <!-- BOTTOM NAVIGATION -->
   <div class="bottom-nav">
@@ -320,7 +327,75 @@
       }
       updateUI();
     });
+  // COMPLETE TASK WITH HISTORY TRACKING
+  function claimTask(taskId, rewardAmount, taskTitle, requiredCode = "") {
+    database.ref('users/' + userId + '/completedTasks/' + taskId).once('value').then((snapshot) => {
+      if (snapshot.exists()) {
+        alert("আপনি ইতিমধ্যে এই টাস্কটি কমপ্লিট করেছেন!");
+        return;
+      }
 
+      if (requiredCode !== "") {
+        let userCode = prompt("Video-তে পাওয়া Secret Code-টি দিন:");
+        if (!userCode || userCode.trim().toUpperCase() !== requiredCode.toUpperCase()) {
+          alert("ভুল কোড! সঠিক কোড দিয়ে আবার চেষ্টা করুন।");
+          return;
+        }
+      }
+
+      userBalance += Number(rewardAmount);
+      
+      const historyId = 'hist_' + Date.now();
+      const currentDate = new Date().toLocaleString();
+
+      let updates = {};
+      updates['users/' + userId + '/balance'] = userBalance;
+      updates['users/' + userId + '/completedTasks/' + taskId] = true;
+      updates['users/' + userId + '/history/' + historyId] = {
+        title: taskTitle,
+        amount: "+" + rewardAmount + " ADI",
+        date: currentDate,
+        type: "Task Reward"
+      };
+
+      database.ref().update(updates).then(() => {
+        updateUI();
+        alert("অভিনন্দন! " + rewardAmount + " ADI আপনার ব্যালেন্সে যোগ হয়েছে।");
+      }).catch((error) => {
+        alert("Database error: " + error.message);
+      });
+    });
+  }
+
+  // FETCH AND DISPLAY HISTORY IN UI
+  function loadHistory() {
+    const historyListElement = document.getElementById('historyList');
+    if (!historyListElement) return;
+
+    database.ref('users/' + userId + '/history').on('value', (snapshot) => {
+      const historyData = snapshot.val();
+      historyListElement.innerHTML = "";
+
+      if (historyData) {
+        Object.keys(historyData).reverse().forEach((key) => {
+          const item = historyData[key];
+          const historyCard = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding:10px; background:#1e1e1e; border-radius:8px;">
+              <div>
+                <div style="font-weight:bold; color:#fff;">${item.title}</div>
+                <div style="font-size:11px; color:#aaa;">${item.date}</div>
+              </div>
+              <div style="color:#4CAF50; font-weight:bold;">${item.amount}</div>
+            </div>
+          `;
+          historyListElement.innerHTML += historyCard;
+        });
+      } else {
+        historyListElement.innerHTML = "<p style='color:#888;'>No transaction history found.</p>";
+      }
+    });
+        }
+                  
     function updateUI() {
       document.getElementById('totalBalance').innerText = userBalance.toLocaleString();
       document.getElementById('usdValue').innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
