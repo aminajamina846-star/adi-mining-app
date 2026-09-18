@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADI Mining - Master Admin Dashboard</title>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #1e293b;
+      margin-bottom: 25px;
+    }
+    h1 { color: #38bdf8; font-size: 24px; }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      border: 1px solid #334155;
+    }
+    .card h3 { color: #f8fafc; font-size: 16px; margin-bottom: 15px; }
+    label { font-size: 12px; color: #94a3b8; display: block; margin-top: 10px; margin-bottom: 5px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #0284c7;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover { background: #0369a1; }
+    .btn-ban { background: #ef4444 !important; }
+    .btn-ban:hover { background: #dc2626 !important; }
+    .btn-unban { background: #22c55e !important; }
+    .btn-unban:hover { background: #16a34a !important; }
+    .btn-approve { background: #22c55e; color: #fff; width: auto; padding: 5px 12px; margin-right: 5px; }
+    .btn-reject { background: #ef4444; color: #fff; width: auto; padding: 5px 12px; }
+    .btn-del { background: #f97316; color: #fff; width: auto; padding: 5px 10px; }
+
+    /* Table Design */
+    .table-responsive {
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    th, td {
+      border: 1px solid #334155;
+      padding: 12px;
+      white-space: nowrap;
+    }
+    th { background: #0f172a; color: #38bdf8; }
+    tr:nth-child(even) { background: #182234; }
+    .badge {
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: bold;
+    }
+    .badge-active { background: #166534; color: #4ade80; }
+    .badge-banned { background: #991b1b; color: #fca5a5; }
+    .badge-mining { background: #075985; color: #38bdf8; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>ADI Mining - Control Center</h1>
+    <div id="stats">Total Users: <span id="totalUsers">0</span></div>
+  </div>
+
+  <div class="grid-container">
+    <!-- Add New Task -->
+    <div class="card">
+      <h3>➕ Create New Task</h3>
+      <label>Task Title</label>
+      <input type="text" id="taskTitle" placeholder="e.g. Join Telegram Group">
+
+      <label>Reward Tokens (ADI$)</label>
+      <input type="number" id="taskReward" placeholder="e.g. 100">
+
+      <label>Task Link</label>
+      <input type="text" id="taskLink" placeholder="https://t.me/your_channel">
+
+      <label>Proof Needed</label>
+      <select id="taskType">
+        <option value="Username">Username / ID</option>
+        <option value="Screenshot">Screenshot Link</option>
+      </select>
+
+      <button onclick="addNewTask()">Publish Task</button>
+    </div>
+
+    <!-- Quick User Balance & Ban Control -->
+    <div class="card">
+      <h3>⚙️ User Quick Control</h3>
+      <label>User Telegram ID / Key</label>
+      <input type="text" id="targetUserId" placeholder="Enter User ID">
+
+      <label>New Balance (ADI$)</label>
+      <input type="number" id="newBalance" placeholder="e.g. 5000">
+      <button onclick="updateUserBalance()" style="margin-bottom: 15px;">Update Balance</button>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-ban" onclick="setUserBanStatus(true)">Ban User</button>
+        <button class="btn-unban" onclick="setUserBanStatus(false)">Unban User</button>
+      </div>
+    </div>
+
+    <!-- Live Dynamic Code Injector (NEW FEATURE) -->
+    <div class="card">
+      <h3>⚡ Dynamic Feature Code Injector</h3>
+      <label>Feature Key Name (Unique)</label>
+      <input type="text" id="featureKey" placeholder="e.g. daily_checkin_banner">
+
+      <label>HTML / JS / CSS Code</label>
+      <textarea id="featureCode" rows="4" placeholder="Paste HTML/CSS/JS code here..."></textarea>
+
+      <button onclick="publishFeatureCode()" style="background:#8b5cf6;">Push Code Live to App</button>
+    </div>
+  </div>
+
+  <!-- Live Active Remote Features List -->
+  <div class="card" style="margin-bottom: 30px;">
+    <h3>🧩 Active Injector Features Live on App</h3>
+    <div id="remoteFeaturesList" class="table-responsive">Loading...</div>
+  </div>
+
+  <!-- Active Dynamic Tasks List -->
+  <div class="card" style="margin-bottom: 30px;">
+    <h3>📋 Active Dynamic Tasks</h3>
+    <div id="activeTasksList" class="table-responsive">Loading...</div>
+  </div>
+
+  <!-- Task Review / Proof Approval -->
+  <div class="card" style="margin-bottom: 30px;">
+    <h3>🔍 Task Proofs Submitted by Users (Review & Approve)</h3>
+    <div id="proofsTable" class="table-responsive">Loading...</div>
+  </div>
+
+  <!-- All Users Full Database, IP, Mining & Wallet Table -->
+  <div class="card">
+    <h3>👥 All Users Directory (IP, Wallet, Mining & Device Info)</h3>
+    <div id="usersTable" class="table-responsive">Loading...</div>
+  </div>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      databaseURL: "https://adi-mining-bot-6e8f1-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // --- NEW DYNAMIC CODE INJECTOR LOGIC ---
+    function publishFeatureCode() {
+      const key = document.getElementById('featureKey').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+      const code = document.getElementById('featureCode').value.trim();
+
+      if(!key || !code) {
+        alert("Feature Key and Code both are required!");
+        return;
+      }
+
+      db.ref('remote_features/' + key).set({
+        code: code,
+        timestamp: Date.now()
+      }).then(() => {
+        alert("Feature Code Injected Successfully!");
+        document.getElementById('featureKey').value = "";
+        document.getElementById('featureCode').value = "";
+      });
+    }
+
+    // Load Live Injected Features Table
+    db.ref('remote_features').on('value', (snap) => {
+      const features = snap.val();
+      const container = document.getElementById('remoteFeaturesList');
+      if(!features) { container.innerHTML = "<p>No custom dynamic code active.</p>"; return; }
+
+      let html = "<table><tr><th>Feature Key</th><th>Code Preview</th><th>Action</th></tr>";
+      Object.keys(features).forEach(key => {
+        const preview = features[key].code.replace(/</g, "&lt;").replace(/>/g, "&gt;").substring(0, 50) + "...";
+        html += `<tr>
+          <td><b>${key}</b></td>
+          <td><code>${preview}</code></td>
+          <td><button class="btn-del" onclick="deleteFeature('${key}')">Remove / Delete Code</button></td>
+        </tr>`;
+      });
+      html += "</table>";
+      container.innerHTML = html;
+    });
+
+    function deleteFeature(key) {
+      if(confirm("Remove this feature code live from user app?")) {
+        db.ref('remote_features/' + key).remove();
+      }
+    }
+
+    // 1. Add New Task
+    function addNewTask() {
+      const title = document.getElementById('taskTitle').value.trim();
+      const reward = parseFloat(document.getElementById('taskReward').value);
+      const link = document.getElementById('taskLink').value.trim();
+      const type = document.getElementById('taskType').value;
+
+      if (!title || isNaN(reward) || !link) {
+        alert("Please fill all details!");
+        return;
+      }
+
+      const taskId = 'task_' + Date.now();
+      db.ref('custom_tasks/' + taskId).set({
+        title: title,
+        reward: reward,
+        link: link,
+        type: type
+      }).then(() => {
+        alert("New Task Published Successfully!");
+        document.getElementById('taskTitle').value = "";
+        document.getElementById('taskReward').value = "";
+        document.getElementById('taskLink').value = "";
+      });
+    }
+
+    // Load Active Dynamic Tasks
+    db.ref('custom_tasks').on('value', (snap) => {
+      const tasks = snap.val();
+      const container = document.getElementById('activeTasksList');
+      if(!tasks) { container.innerHTML = "<p>No active tasks.</p>"; return; }
+
+      let html = "<table><tr><th>Title</th><th>Reward</th><th>Link</th><th>Type</th><th>Action</th></tr>";
+      Object.keys(tasks).forEach(id => {
+        html += `<tr>
+          <td>${tasks[id].title}</td>
+          <td>+${tasks[id].reward} ADI</td>
+          <td><a href="${tasks[id].link}" target="_blank" style="color:#38bdf8;">Open Link</a></td>
+          <td>${tasks[id].type}</td>
+          <td><button class="btn-del" onclick="deleteTask('${id}')">Delete</button></td>
+        </tr>`;
+      });
+      html += "</table>";
+      container.innerHTML = html;
+    });
+
+    function deleteTask(id) {
+      if(confirm("Delete this task?")) db.ref('custom_tasks/' + id).remove();
+    }
+
+    // 2. User Balance Change
+    function updateUserBalance() {
+      const userId = document.getElementById('targetUserId').value.trim();
+      const balance = parseFloat(document.getElementById('newBalance').value);
+      if(!userId || isNaN(balance)) { alert("Enter valid User ID and Balance!"); return; }
+
+      db.ref('users/' + userId + '/balance').set(balance).then(() => {
+        alert("Balance Updated!");
+      });
+    }
+
+    // 3. User Ban / Unban
+    function setUserBanStatus(isBanned) {
+      const userId = document.getElementById('targetUserId').value.trim();
+      if(!userId) { alert("Enter User ID!"); return; }
+
+      db.ref('users/' + userId + '/isBanned').set(isBanned).then(() => {
+        alert(`User status set to: ${isBanned ? 'BANNED' : 'ACTIVE'}`);
+      });
+    }
+
+    // 4. Task Review / Proof Approval
+    db.ref('pending_tasks').on('value', (snap) => {
+      const proofs = snap.val();
+      const container = document.getElementById('proofsTable');
+      if(!proofs) { container.innerHTML = "<p>No pending proofs for review.</p>"; return; }
+
+      let html = "<table><tr><th>User ID</th><th>Task Name</th><th>Proof Submitted</th><th>Reward</th><th>Action</th></tr>";
+      Object.keys(proofs).forEach(proofKey => {
+        const p = proofs[proofKey];
+        html += `<tr>
+          <td>${p.userId || p.username}</td>
+          <td>${p.taskName}</td>
+          <td><b>${p.proof}</b></td>
+          <td>+${p.reward} ADI</td>
+          <td>
+            <button class="btn-approve" onclick="approveProof('${proofKey}', '${p.userId}', ${p.reward})">Approve</button>
+            <button class="btn-reject" onclick="rejectProof('${proofKey}')">Reject</button>
+          </td>
+        </tr>`;
+      });
+      html += "</table>";
+      container.innerHTML = html;
+    });
+
+    function approveProof(proofKey, userId, reward) {
+      if(!userId) { alert("User ID missing!"); return; }
+      
+      // Auto Credit Reward to User Balance
+      db.ref('users/' + userId + '/balance').transaction((curr) => {
+        return (curr || 0) + parseFloat(reward);
+      }).then(() => {
+        // Remove proof from pending
+        db.ref('pending_tasks/' + proofKey).remove();
+        alert("Proof Approved & Reward Added to User Balance!");
+      });
+    }
+
+    function rejectProof(proofKey) {
+      if(confirm("Reject this proof?")) {
+        db.ref('pending_tasks/' + proofKey).remove();
+      }
+    }
+
+    // 5. Load All Users Data (IP, Wallet, Mining, Device)
+    db.ref('users').on('value', (snap) => {
+      const users = snap.val();
+      const container = document.getElementById('usersTable');
+      if(!users) { container.innerHTML = "<p>No users registered yet.</p>"; return; }
+
+      const userKeys = Object.keys(users);
+      document.getElementById('totalUsers').innerText = userKeys.length;
+
+      let html = "<table><tr><th>User ID / Name</th><th>Balance</th><th>Status</th><th>Mining Status</th><th>IP Address</th><th>Wallet</th><th>Device</th><th>Action</th></tr>";
+      
+      userKeys.forEach(uid => {
+        const u = users[uid];
+        const isBanned = u.isBanned ? `<span class="badge badge-banned">BANNED</span>` : `<span class="badge badge-active">ACTIVE</span>`;
+        
+        // Check if Mining Active (Within last 24h)
+        const isMining = u.lastMiningTime && (Date.now() - u.lastMiningTime < 24*60*60*1000);
+        const miningBadge = isMining ? `<span class="badge badge-mining">MINING ACTIVE</span>` : `<span style="color:#64748b;">IDLE</span>`;
+
+        html += `<tr>
+          <td><b>${u.username || u.name || uid}</b><br><small style="color:#64748b;">${uid}</small></td>
+          <td><b>${(u.balance || 0).toFixed(2)} ADI$</b></td>
+          <td>${isBanned}</td>
+          <td>${miningBadge}</td>
+          <td>${u.ip || 'N/A'}</td>
+          <td>${u.wallet || 'Not Set'}</td>
+          <td><small>${u.device || 'Mobile'}</small></td>
+          <td>
+            <button style="padding:3px 8px; font-size:10px;" onclick="document.getElementById('targetUserId').value='${uid}';">Select</button>
+          </td>
+        </tr>`;
+      });
+      html += "</table>";
+      container.innerHTML = html;
+    });
+  </script>
+</body>
+  </html>
+  
