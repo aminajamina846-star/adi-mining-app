@@ -451,8 +451,9 @@
           <p id="userLevel"><i class="fa-solid fa-shield-halved" style="color: var(--accent-silver);"></i> Verified Miner</p>
         </div>
       </div>
-      <div class="icon-btn" onclick="showAlert('No new notifications')"><i class="fa-regular fa-bell"></i></div>
-    </div>
+      <div class="icon-btn" onclick="showNotifications()" style="cursor: pointer;">
+  <i class="fa-regular fa-bell"></i>
+</div>
 
     <!-- 1. HOME PAGE -->
     <div id="page-home" class="page active">
@@ -674,11 +675,11 @@
 
   </div>
 <!-- REFERRAL PAGE CONTAINER -->
-<div id="page-referral" class="page" style="display: none;">
+<div id="page-referral" class="page" style="display: none; padding: 20px; min-height: 80vh; color: #ffffff; background-color: #0d0d0d;">
   <h2>👥 Referral Program</h2>
 
   <!-- রেফারেল লিংক বক্স -->
-  <div class="card" style="margin-top: 15px;">
+  <div class="card" style="margin-top: 15px; background: #1a1a1a; padding: 15px; border-radius: 10px;">
     <p style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Your Referral Link:</p>
     <div style="display: flex; gap: 10px;">
       <input type="text" id="refLinkInput" readonly value="https://t.me/your_bot?start=12345" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff;">
@@ -687,7 +688,7 @@
   </div>
 
   <!-- ইনভাইট হিস্ট্রি -->
-  <div class="card" style="margin-top: 15px;">
+  <div class="card" style="margin-top: 15px; background: #1a1a1a; padding: 15px; border-radius: 10px;">
     <h3>📊 Invited Friends History</h3>
     <div id="refHistoryList" class="table-responsive" style="margin-top: 10px;">
       <p style="font-size: 12px; color: #94a3b8;">No referrals yet.</p>
@@ -751,28 +752,27 @@
     // ১. নোটিফিকেশন ভ্যারিয়েবল ডিক্লেয়ারেশন
 let liveNotificationMsg = "No new notifications right now.";
 
-// ২. পেজ সুইচিং (Tab Switching) সেফ ফাংশন
 function switchTab(pageId, element) {
-  // সব পেজ হাইড (Hide) করা
+  // ১. সব .page ক্লাসের সেকশন হাইড করা
   const pages = document.querySelectorAll('.page');
   pages.forEach(p => p.style.display = 'none');
 
-  // নির্দিষ্ট পেজটি শো (Show) করা
+  // ২. টার্গেট পেজ শো করা
   const targetPage = document.getElementById(pageId);
   if (targetPage) {
     targetPage.style.display = 'block';
   } else {
-    console.error("Page ID not found: " + pageId);
+    console.error("Page not found: " + pageId);
   }
 
-  // যদি বটম নেভিগেশন বা বাটন থেকে element পাঠানো হয় কেবল তখনই অ্যাক্টিভ ক্লাস চেঞ্জ হবে
+  // ৩. নেভিগেশন হাইলাইট
   if (element && element.classList) {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => item.classList.remove('active'));
     element.classList.add('active');
   }
 }
-    
+
 
 // ৩. রেফারেল লিংক কপি ফাংশন
 function copyRefLink() {
