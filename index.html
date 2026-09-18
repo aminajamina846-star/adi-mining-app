@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ADI$ Airdrop App</title>
+  <title>ADI$ Airdrop & Mining App</title>
 
   <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -13,86 +13,125 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <!-- Google Fonts & Font Awesome Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     :root {
-      --bg-color: #000000;
-      --card-bg: rgba(20, 20, 20, 0.85);
-      --card-border: rgba(255, 255, 255, 0.15);
+      --bg-color: #050505;
+      --card-bg: rgba(22, 22, 26, 0.85);
+      --card-border: rgba(255, 255, 255, 0.12);
       --text-main: #ffffff;
-      --text-sub: #a3a3a3;
+      --text-sub: #94a3b8;
       --accent-silver: #e2e8f0;
-      --silver-gradient: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
+      --silver-gradient: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #64748b 100%);
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; user-select: none; }
-    body { background-color: var(--bg-color); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; color: var(--text-main); padding-bottom: 90px; }
-    .app-container { width: 100%; max-width: 420px; padding: 16px; }
+    body { background-color: var(--bg-color); display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; color: var(--text-main); padding-bottom: 95px; }
+    .app-container { width: 100%; max-width: 430px; padding: 16px; }
     .page { display: none; }
     .page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* UI Components */
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    /* Header & User Info */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; background: rgba(255, 255, 255, 0.03); padding: 10px 14px; border-radius: 16px; border: 1px solid var(--card-border); }
     .profile-info { display: flex; align-items: center; gap: 12px; }
-    .avatar { width: 46px; height: 46px; background: var(--silver-gradient); color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 18px; }
-    .user-details h3 { font-size: 15px; font-weight: 700; }
-    .user-details p { font-size: 11px; color: var(--text-sub); }
+    .avatar { width: 44px; height: 44px; background: var(--silver-gradient); color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 18px; box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+    .user-details h3 { font-size: 14px; font-weight: 700; color: #fff; }
+    .user-details p { font-size: 10px; color: var(--text-sub); display: flex; align-items: center; gap: 4px; }
 
-    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 20px; margin-bottom: 16px; }
-    .card-silver { background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(10, 10, 10, 0.9) 100%); border: 1px solid rgba(255, 255, 255, 0.3); }
-    .balance-val { font-size: 36px; font-weight: 800; }
-    .balance-val span { font-size: 18px; color: var(--accent-silver); }
+    /* Card System */
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 18px; margin-bottom: 14px; backdrop-filter: blur(10px); }
+    .card-silver { background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(15, 15, 20, 0.95) 100%); border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+    
+    /* Balance & Stats */
+    .balance-label { font-size: 11px; font-weight: 600; color: var(--text-sub); letter-spacing: 0.5px; }
+    .balance-val { font-size: 34px; font-weight: 800; margin: 4px 0; color: #fff; text-shadow: 0 0 12px rgba(255,255,255,0.2); }
+    .balance-val span { font-size: 16px; color: var(--accent-silver); font-weight: 600; }
 
-    .btn { padding: 12px; border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; text-align: center; border: none; outline: none; transition: 0.2s; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
-    .btn-metallic { background: var(--silver-gradient); color: #000; }
-    .btn-dark { background: rgba(255, 255, 255, 0.06); color: var(--text-main); border: 1px solid var(--card-border); }
+    /* Buttons */
+    .btn { padding: 12px; border-radius: 14px; font-weight: 700; font-size: 12px; cursor: pointer; text-align: center; border: none; outline: none; transition: all 0.2s ease; display: inline-flex; justify-content: center; align-items: center; gap: 8px; }
+    .btn-metallic { background: var(--silver-gradient); color: #000; box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15); }
+    .btn-dark { background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--card-border); }
     .btn:active { transform: scale(0.97); }
 
-    .task-card { background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+    /* Task Box & Input */
+    .task-card { background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
     .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .task-title { font-size: 13px; font-weight: 700; }
-    .task-reward { font-size: 11px; color: #4ade80; font-weight: 800; }
-    .task-input { width: 100%; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--card-border); border-radius: 8px; color: #fff; font-size: 11px; margin-top: 8px; margin-bottom: 8px; outline: none; }
+    .task-title { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .task-reward { font-size: 11px; color: var(--accent-green); font-weight: 800; }
+    .task-input { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--card-border); border-radius: 10px; color: #fff; font-size: 11px; margin: 8px 0; outline: none; }
+    .task-input:focus { border-color: rgba(255,255,255,0.4); }
 
-    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: rgba(10, 10, 10, 0.95); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; padding: 10px 0; z-index: 999; }
-    .nav-item { text-align: center; font-size: 9px; font-weight: 700; cursor: pointer; color: var(--text-sub); padding: 6px 8px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .nav-item.active { color: #000; background: var(--silver-gradient); }
+    /* Mining Circular Area */
+    .mining-box { text-align: center; padding: 20px 0; }
+    .mining-circle { width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.8) 100%); border: 3px solid rgba(255,255,255,0.3); display: flex; justify-content: center; align-items: center; margin: 0 auto 16px auto; position: relative; box-shadow: 0 0 20px rgba(255,255,255,0.1); }
+    .mining-circle i { font-size: 40px; color: #cbd5e1; }
+    .mining-active { animation: pulse 2s infinite; border-color: #4ade80; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(74, 222, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
+
+    /* Navigation Bar */
+    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: rgba(8, 8, 10, 0.95); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; padding: 10px 0 14px 0; z-index: 999; backdrop-filter: blur(12px); }
+    .nav-item { text-align: center; font-size: 9px; font-weight: 700; cursor: pointer; color: var(--text-sub); padding: 6px 12px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.2s; }
+    .nav-item i { font-size: 16px; }
+    .nav-item.active { color: #000; background: var(--silver-gradient); font-weight: 800; }
   </style>
 </head>
 <body>
 
   <div class="app-container">
     
-    <!-- Top Bar -->
+    <!-- Top Profile Bar -->
     <div class="top-bar">
       <div class="profile-info">
         <div class="avatar" id="userAvatar">U</div>
         <div class="user-details">
           <h3 id="userName">User</h3>
-          <p><i class="fa-solid fa-shield-halved"></i> Verified Miner</p>
+          <p><i class="fa-solid fa-shield-halved" style="color: #38bdf8;"></i> Verified Miner</p>
         </div>
       </div>
+      <div style="text-align: right;">
+        <span style="font-size: 9px; color: var(--text-sub); display: block;">LEVEL</span>
+        <strong style="font-size: 12px; color: #e2e8f0;" id="userLevel">BASIC</strong>
+      </div>
     </div>
 
-    <!-- HOME PAGE -->
+    <!-- 1. HOME PAGE -->
     <div id="page-home" class="page active">
       <div class="card card-silver">
-        <div style="font-size: 11px; color: var(--text-sub);">TOTAL BALANCE</div>
+        <div class="balance-label">TOTAL BALANCE</div>
         <div class="balance-val" id="totalBalance">0 <span>ADI$</span></div>
-        <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;" id="usdValue">≈ $0.00 USD</div>
+        <div style="font-size: 12px; color: #94a3b8;" id="usdValue">≈ $0.00 USD</div>
       </div>
-      <button class="btn btn-metallic" onclick="switchTab('page-tasks')" style="width:100%;">Complete Tasks & Earn</button>
+
+      <!-- Mining Console -->
+      <div class="card">
+        <div class="mining-box">
+          <div class="mining-circle" id="miningCircle">
+            <i class="fa-solid fa-pickaxe" id="miningIcon"></i>
+          </div>
+          <div style="font-size: 14px; font-weight: 800; margin-bottom: 4px;" id="miningStatusText">MINING IS INACTIVE</div>
+          <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 14px;" id="miningTimer">Start 8-hour mining session to earn token</p>
+          <button class="btn btn-metallic" style="width: 100%;" id="startMiningBtn" onclick="startMiningProcess()">Start Mining (+50 ADI$)</button>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <button class="btn btn-dark" onclick="switchTab('page-tasks', document.querySelectorAll('.nav-item')[1])"><i class="fa-solid fa-list-check"></i> Earn More</button>
+        <button class="btn btn-dark" onclick="switchTab('page-wallet', document.querySelectorAll('.nav-item')[3])"><i class="fa-solid fa-wallet"></i> Withdraw</button>
+      </div>
     </div>
 
-    <!-- REFERRAL PAGE -->
+    <!-- 2. REFERRAL PAGE -->
     <div id="page-ref" class="page">
       <div class="card card-silver" style="text-align: center;">
         <i class="fa-solid fa-users" style="font-size: 36px; margin-bottom: 10px; color: #cbd5e1;"></i>
         <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 6px;">Invite Friends</h2>
-        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 16px;">Earn +100 ADI$ for every friend who joins using your link!</p>
+        <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 16px;">Earn +100 ADI$ for every friend who joins using your unique link!</p>
         
         <input type="text" id="refLinkInput" class="task-input" readonly value="Loading invite link..." style="text-align:center;">
         <button class="btn btn-metallic" style="width:100%;" onclick="shareReferralLink()">Copy & Share Link</button>
@@ -100,55 +139,55 @@
 
       <div class="card">
         <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">REFERRAL STATS</div>
-        <div style="display:flex; justify-content:space-between; font-size:12px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.1);">
+        <div style="display:flex; justify-content:space-between; font-size:12px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.08);">
           <span style="color:#aaa;">Invited Friends</span>
           <strong id="refCount">0</strong>
         </div>
-        <div style="display:flex; justify-content:space-between; font-size:12px; padding:6px 0;">
-          <span style="color:#aaa;">Total Ref Earned</span>
-          <strong style="color:#4ade80;" id="refEarnings">0 ADI$</strong>
+        <div style="display:flex; justify-content:space-between; font-size:12px; padding:8px 0;">
+          <span style="color:#aaa;">Total Referral Earned</span>
+          <strong style="color:var(--accent-green);" id="refEarnings">0 ADI$</strong>
         </div>
       </div>
     </div>
 
-    <!-- TASKS PAGE -->
+    <!-- 3. TASKS PAGE -->
     <div id="page-tasks" class="page">
       <div style="font-size: 14px; font-weight: 800; margin-bottom: 12px;">AVAILABLE TASKS</div>
       
-      <!-- Telegram -->
+      <!-- Telegram Task -->
       <div class="task-card">
         <div class="task-header">
           <span class="task-title"><i class="fa-brands fa-telegram" style="color:#229ED9;"></i> Join Telegram</span>
           <span class="task-reward">+10 ADI$</span>
         </div>
-        <a href="https://t.me/adiofficialannusment" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none;">1. Join Channel</a>
+        <a href="https://t.me/adiofficialannusment" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px;">1. Join Channel</a>
         <input type="text" id="proof-tg" class="task-input" placeholder="Enter Telegram Username (@username)">
         <button class="btn btn-metallic" style="width:100%; padding:8px;" onclick="submitProof('Telegram Channel', 10, 'proof-tg')">Submit Proof</button>
       </div>
 
-      <!-- X / Twitter -->
+      <!-- X / Twitter Task -->
       <div class="task-card">
         <div class="task-header">
           <span class="task-title"><i class="fa-brands fa-x-twitter"></i> Follow X</span>
           <span class="task-reward">+20 ADI$</span>
         </div>
-        <a href="https://x.com/adiairdrops" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none;">1. Follow X Profile</a>
+        <a href="https://x.com/adiairdrops" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px;">1. Follow X Profile</a>
         <input type="text" id="proof-x" class="task-input" placeholder="Enter X Username (@username)">
         <button class="btn btn-metallic" style="width:100%; padding:8px;" onclick="submitProof('Follow X', 20, 'proof-x')">Submit Proof</button>
       </div>
 
-      <!-- Facebook -->
+      <!-- Facebook Task -->
       <div class="task-card">
         <div class="task-header">
           <span class="task-title"><i class="fa-brands fa-facebook" style="color:#1877F2;"></i> Follow Facebook</span>
           <span class="task-reward">+40 ADI$</span>
         </div>
-        <a href="https://www.facebook.com/profile.php?id=61594465981380" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none;">1. Visit Facebook</a>
+        <a href="https://www.facebook.com/profile.php?id=61594465981380" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px;">1. Visit Facebook Page</a>
         <input type="text" id="proof-fb" class="task-input" placeholder="Enter FB Profile Link/Username">
         <button class="btn btn-metallic" style="width:100%; padding:8px;" onclick="submitProof('Facebook Page', 40, 'proof-fb')">Submit Proof</button>
       </div>
 
-      <!-- YouTube -->
+      <!-- YouTube Task -->
       <div class="task-card">
         <div class="task-header">
           <span class="task-title"><i class="fa-brands fa-youtube" style="color:#FF0000;"></i> YouTube Subscribe</span>
@@ -158,39 +197,55 @@
         <button class="btn btn-metallic" style="width:100%; padding:8px;" onclick="submitProof('YouTube Subscribe', 60, 'proof-yt')">Submit Proof</button>
       </div>
 
-      <!-- Instagram -->
+      <!-- Instagram Task -->
       <div class="task-card">
         <div class="task-header">
           <span class="task-title"><i class="fa-brands fa-instagram" style="color:#E4405F;"></i> Follow Instagram</span>
           <span class="task-reward">+10 ADI$</span>
         </div>
-        <a href="https://www.instagram.com/adiairdrop3?stkn=eTRtNmJ2bWdkaTZ5" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none;">1. Follow Instagram</a>
+        <a href="https://www.instagram.com/adiairdrop3?stkn=eTRtNmJ2bWdkaTZ5" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px;">1. Follow Instagram</a>
         <input type="text" id="proof-ins" class="task-input" placeholder="Paste Screenshot Image URL">
         <button class="btn btn-metallic" style="width:100%; padding:8px;" onclick="submitProof('Instagram Follow', 10, 'proof-ins')">Submit Proof</button>
       </div>
 
-      <!-- Admin Added Dynamic Video/Tasks Container -->
+      <!-- Dynamic Tasks Loaded from Admin -->
       <div id="dynamicTasksContainer"></div>
     </div>
 
-    <!-- ADMIN PANEL PAGE -->
+    <!-- 4. WALLET / WITHDRAWAL PAGE -->
+    <div id="page-wallet" class="page">
+      <div class="card card-silver">
+        <div class="balance-label">AVAILABLE FOR WITHDRAWAL</div>
+        <div class="balance-val" id="walletBalance">0 <span>ADI$</span></div>
+        <p style="font-size: 11px; color: var(--text-sub); margin-top: 4px;">Minimum Withdrawal Threshold: <strong>1000 ADI$</strong></p>
+      </div>
+
+      <div class="card">
+        <div style="font-size: 13px; font-weight: 700; margin-bottom: 12px;">REQUEST WITHDRAWAL</div>
+        <input type="text" id="withdrawAddress" class="task-input" placeholder="Enter TON Wallet Address / ID">
+        <input type="number" id="withdrawAmount" class="task-input" placeholder="Amount (Min. 1000 ADI$)">
+        <button class="btn btn-metallic" style="width:100%; margin-top: 6px;" onclick="processWithdrawal()">Submit Withdrawal</button>
+      </div>
+    </div>
+
+    <!-- 5. ADMIN PANEL PAGE -->
     <div id="page-admin" class="page">
       <div class="card card-silver">
         <div style="font-size: 16px; font-weight: 800; margin-bottom: 12px;">ADMIN PANEL</div>
         
         <!-- Add Task Section -->
-        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">1. Add New Task / Video</div>
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">1. Add New Dynamic Task</div>
         <input type="text" id="adminTaskTitle" class="task-input" placeholder="Task Title (e.g. Watch New Video)">
         <input type="text" id="adminTaskLink" class="task-input" placeholder="Task / Video URL Link">
         <input type="number" id="adminTaskReward" class="task-input" placeholder="Reward Points (e.g. 50)">
         <select id="adminTaskType" class="task-input" style="background: #111;">
-          <option value="Username">Requires Username</option>
-          <option value="Screenshot">Requires Screenshot URL</option>
+          <option value="Username">Requires Username Proof</option>
+          <option value="Screenshot">Requires Screenshot Link</option>
         </select>
         <button class="btn btn-metallic" style="width: 100%; margin-bottom: 20px;" onclick="addNewTaskByAdmin()">Publish Task</button>
 
         <!-- Proof Check Section -->
-        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">2. Pending Submissions</div>
+        <div style="font-size: 12px; font-weight: 700; margin-bottom: 8px;">2. User Task Submissions</div>
         <div id="adminPendingList" style="max-height: 250px; overflow-y: auto;">
           <p style="font-size:11px; color:#aaa;">Loading pending proofs...</p>
         </div>
@@ -199,28 +254,32 @@
 
   </div>
 
-  <!-- Bottom Navigation -->
+  <!-- Bottom Navigation Bar -->
   <div class="bottom-nav">
     <div class="nav-item active" onclick="switchTab('page-home', this)"><i class="fa-solid fa-house"></i><span>Home</span></div>
     <div class="nav-item" onclick="switchTab('page-tasks', this)"><i class="fa-solid fa-list-check"></i><span>Tasks</span></div>
     <div class="nav-item" onclick="switchTab('page-ref', this)"><i class="fa-solid fa-user-plus"></i><span>Ref</span></div>
+    <div class="nav-item" onclick="switchTab('page-wallet', this)"><i class="fa-solid fa-wallet"></i><span>Wallet</span></div>
     <div class="nav-item" onclick="switchTab('page-admin', this)"><i class="fa-solid fa-user-gear"></i><span>Admin</span></div>
   </div>
 
   <script>
-    // Firebase Config
+    // Firebase Setup
     const firebaseConfig = {
       databaseURL: "https://adi-mining-bot-6e8f1-default-rtdb.firebaseio.com"
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // Telegram App State
+    // App Global Variables
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     let userId = "guest_user";
     let userName = "Airdrop User";
     let userBalance = 0;
+    let miningEndTime = 0;
+    let miningInterval = null;
 
+    // Telegram Context Initialization
     if (tg) {
       tg.ready();
       tg.expand();
@@ -230,25 +289,29 @@
       }
     }
 
-    // Connect User Data
+    // Connect User Firebase Realtime Database
     const userRef = database.ref('users/' + userId);
     userRef.on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         userBalance = Number(data.balance) || 0;
+        miningEndTime = data.miningEndTime || 0;
         updateUI(data);
+        checkMiningState();
       } else {
-        userRef.set({ username: userName, balance: 0, refCount: 0 });
+        userRef.set({ username: userName, balance: 0, refCount: 0, miningEndTime: 0 });
       }
     });
 
+    // Dynamic UI Updates
     function updateUI(data = {}) {
       document.getElementById('totalBalance').innerText = userBalance;
+      document.getElementById('walletBalance').innerText = userBalance;
       document.getElementById('usdValue').innerText = `≈ $${(userBalance * 0.0001).toFixed(4)} USD`;
       document.getElementById('userName').innerText = userName;
       document.getElementById('userAvatar').innerText = userName.charAt(0).toUpperCase();
 
-      const botUsername = "your_bot_username"; // Replace with your Telegram bot username
+      const botUsername = "your_bot_username"; // Set your actual bot username
       const refLink = `https://t.me/${botUsername}?start=${userId}`;
       document.getElementById('refLinkInput').value = refLink;
 
@@ -259,7 +322,57 @@
       }
     }
 
-    // Submit Task Proof
+    /* --- MINING SYSTEM ENGINE --- */
+    function startMiningProcess() {
+      const now = Date.now();
+      if (miningEndTime > now) return;
+
+      const durationHours = 8;
+      miningEndTime = now + (durationHours * 60 * 60 * 1000);
+
+      userRef.update({
+        miningEndTime: miningEndTime,
+        balance: userBalance + 50
+      }).then(() => {
+        alert("Mining Session Started! +50 ADI$ credited.");
+      });
+    }
+
+    function checkMiningState() {
+      clearInterval(miningInterval);
+      const now = Date.now();
+
+      if (miningEndTime > now) {
+        document.getElementById('miningCircle').classList.add('mining-active');
+        document.getElementById('miningStatusText').innerText = "MINING IN PROGRESS";
+        document.getElementById('startMiningBtn').style.display = "none";
+
+        miningInterval = setInterval(() => {
+          const currentTime = Date.now();
+          const remaining = miningEndTime - currentTime;
+
+          if (remaining <= 0) {
+            clearInterval(miningInterval);
+            document.getElementById('miningCircle').classList.remove('mining-active');
+            document.getElementById('miningStatusText').innerText = "MINING COMPLETED";
+            document.getElementById('miningTimer').innerText = "Start new session to earn points.";
+            document.getElementById('startMiningBtn').style.display = "block";
+          } else {
+            const h = Math.floor(remaining / (1000 * 60 * 60));
+            const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((remaining % (1000 * 60)) / 1000);
+            document.getElementById('miningTimer').innerText = `Time Left: ${h}h ${m}m ${s}s`;
+          }
+        }, 1000);
+      } else {
+        document.getElementById('miningCircle').classList.remove('mining-active');
+        document.getElementById('miningStatusText').innerText = "MINING IS INACTIVE";
+        document.getElementById('miningTimer').innerText = "Start 8-hour mining session to earn token";
+        document.getElementById('startMiningBtn').style.display = "block";
+      }
+    }
+
+    /* --- TASK PROOF SUBMISSION --- */
     function submitProof(taskName, reward, inputId) {
       const proofValue = document.getElementById(inputId).value.trim();
       if (!proofValue) {
@@ -267,8 +380,7 @@
         return;
       }
 
-      const pendingRef = database.ref('pending_tasks').push();
-      pendingRef.set({
+      database.ref('pending_tasks').push().set({
         userId: userId,
         username: userName,
         taskName: taskName,
@@ -281,7 +393,7 @@
       });
     }
 
-    // Admin: Publish New Task
+    /* --- ADMIN DYNAMIC TASK SYSTEM --- */
     function addNewTaskByAdmin() {
       const title = document.getElementById('adminTaskTitle').value.trim();
       const link = document.getElementById('adminTaskLink').value.trim();
@@ -289,7 +401,7 @@
       const type = document.getElementById('adminTaskType').value;
 
       if (!title || !link || !reward) {
-        alert("Please fill all details!");
+        alert("Please complete all task form fields!");
         return;
       }
 
@@ -299,14 +411,14 @@
         reward: reward,
         type: type
       }).then(() => {
-        alert("Task published to app!");
+        alert("Task published live to the user task tab!");
         document.getElementById('adminTaskTitle').value = "";
         document.getElementById('adminTaskLink').value = "";
         document.getElementById('adminTaskReward').value = "";
       });
     }
 
-    // Render Admin Custom Tasks
+    // Dynamic Render of Admin Created Tasks
     database.ref('custom_tasks').on('value', (snapshot) => {
       const container = document.getElementById('dynamicTasksContainer');
       container.innerHTML = "";
@@ -317,11 +429,11 @@
           container.innerHTML += `
             <div class="task-card">
               <div class="task-header">
-                <span class="task-title"><i class="fa-solid fa-video" style="color:#ff0000;"></i> ${t.title}</span>
+                <span class="task-title"><i class="fa-solid fa-play-circle" style="color:#e2e8f0;"></i> ${t.title}</span>
                 <span class="task-reward">+${t.reward} ADI$</span>
               </div>
-              <a href="${t.link}" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none;">Open Task Link</a>
-              <input type="text" id="proof-${key}" class="task-input" placeholder="${t.type === 'Screenshot' ? 'Paste Screenshot URL' : 'Enter Username'}">
+              <a href="${t.link}" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px;">Open Link</a>
+              <input type="text" id="proof-${key}" class="task-input" placeholder="${t.type === 'Screenshot' ? 'Paste Screenshot Link' : 'Enter Username'}">
               <button class="btn btn-metallic" style="width:100%; padding:8px;" onclick="submitProof('${t.title}', ${t.reward}, 'proof-${key}')">Submit Proof</button>
             </div>
           `;
@@ -329,7 +441,7 @@
       }
     });
 
-    // Admin: Load & Manage Pending Proofs
+    // Admin Proof Verification Render
     database.ref('pending_tasks').on('value', (snapshot) => {
       const list = document.getElementById('adminPendingList');
       list.innerHTML = "";
@@ -339,13 +451,13 @@
         Object.keys(pendingData).forEach(key => {
           const p = pendingData[key];
           list.innerHTML += `
-            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.1);">
+            <div style="background:rgba(255,255,255,0.04); padding:10px; border-radius:10px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.08);">
               <div style="font-size:11px; font-weight:700; color:#fff;">${p.taskName} (+${p.reward} ADI)</div>
               <div style="font-size:10px; color:#aaa;">User: ${p.username} (ID: ${p.userId})</div>
-              <div style="font-size:11px; color:#4ade80; word-break:break-all; margin:4px 0;">Proof: ${p.proof}</div>
+              <div style="font-size:11px; color:var(--accent-green); word-break:break-all; margin:4px 0;">Proof: ${p.proof}</div>
               <div style="display:flex; gap:8px; margin-top:6px;">
                 <button class="btn btn-metallic" style="padding:4px 10px; font-size:10px;" onclick="approveProof('${key}', '${p.userId}', ${p.reward})">Approve</button>
-                <button class="btn btn-dark" style="padding:4px 10px; font-size:10px; color:#f87171;" onclick="rejectProof('${key}')">Reject</button>
+                <button class="btn btn-dark" style="padding:4px 10px; font-size:10px; color:var(--accent-red);" onclick="rejectProof('${key}')">Reject</button>
               </div>
             </div>
           `;
@@ -358,27 +470,60 @@
     function approveProof(key, targetUserId, reward) {
       database.ref('users/' + targetUserId + '/balance').transaction(bal => (bal || 0) + reward).then(() => {
         database.ref('pending_tasks/' + key).remove();
-        alert("Approved & Reward added!");
+        alert("Proof Approved & Rewards Credited!");
       });
     }
 
     function rejectProof(key) {
       database.ref('pending_tasks/' + key).remove();
-      alert("Proof Rejected!");
+      alert("Submission Rejected!");
     }
 
-    // Share Referral Link
+    /* --- WITHDRAWAL ENGINE --- */
+    function processWithdrawal() {
+      const address = document.getElementById('withdrawAddress').value.trim();
+      const amount = Number(document.getElementById('withdrawAmount').value);
+
+      if (!address || !amount) {
+        alert("Please specify valid address and amount!");
+        return;
+      }
+      if (amount < 1000) {
+        alert("Minimum withdrawal limit is 1000 ADI$");
+        return;
+      }
+      if (amount > userBalance) {
+        alert("Insufficient balance for this transaction!");
+        return;
+      }
+
+      database.ref('users/' + userId + '/balance').transaction(bal => bal - amount).then(() => {
+        database.ref('withdrawals').push().set({
+          userId: userId,
+          username: userName,
+          address: address,
+          amount: amount,
+          status: 'Pending',
+          timestamp: new Date().toLocaleString()
+        });
+        alert("Withdrawal request submitted successfully!");
+        document.getElementById('withdrawAddress').value = "";
+        document.getElementById('withdrawAmount').value = "";
+      });
+    }
+
+    /* --- REFERRAL SHARE --- */
     function shareReferralLink() {
       const link = document.getElementById('refLinkInput').value;
       if (tg) {
-        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("Join ADI$ Airdrop Mining and get bonus tokens!")}`);
+        tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("Join ADI$ Airdrop Mining app and claim 50 free tokens!")}`);
       } else {
         navigator.clipboard.writeText(link);
-        alert("Referral link copied!");
+        alert("Referral link copied to clipboard!");
       }
     }
 
-    // Switch Navigation Tabs
+    /* --- TAB NAVIGATION SYSTEM --- */
     function switchTab(pageId, element = null) {
       document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
       document.getElementById(pageId).classList.add('active');
@@ -389,5 +534,4 @@
     }
   </script>
 </body>
-        </html>
-  
+</html>
