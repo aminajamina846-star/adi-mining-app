@@ -740,21 +740,7 @@ function switchTab(pageId, element) {
   const pages = document.querySelectorAll('.page');
   pages.forEach(p => p.style.display = 'none');
 
-  // ২. টার্গেট পেজ শো করা
-  const targetPage = document.getElementById(pageId);
-  if (targetPage) {
-    targetPage.style.display = 'block';
-  } else {
-    console.error("Page not found: " + pageId);
-  }
-
-  // ৩. নেভিগেশন হাইলাইট
-  if (element && element.classList) {
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => item.classList.remove('active'));
-    element.classList.add('active');
-  }
-}
+  // ২
 
 
 // ৩. রেফারেল লিংক কপি ফাংশন
