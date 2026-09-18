@@ -2,145 +2,271 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>$ADI Airdrop Bot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ADI$ Airdrop Bot</title>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: #0b0e14; color: #ffffff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; user-select: none; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: #0b0e14; color: #ffffff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
     
     .container { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 90px; }
     .page { display: none; }
     .page.active { display: block; }
 
-    /* Header Bar */
-    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .user-info { display: flex; align-items: center; gap: 10px; }
-    .avatar-circle { width: 40px; height: 40px; background: #222938; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 1px solid #2d3748; }
-    
+    /* Top User Bar */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .user-profile { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 42px; height: 42px; background: #222938; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; border: 1px solid #2d3748; }
+    .user-details h4 { font-size: 15px; font-weight: 700; color: #ffffff; }
+    .verified-tag { font-size: 11px; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
+    .bell-btn { width: 38px; height: 38px; background: #131722; border: 1px solid #1e2640; border-radius: 10px; color: #fff; display: flex; align-items: center; justify-content: center; }
+
     /* Cards */
-    .card { background: #131722; border: 1px solid #1e2640; border-radius: 16px; padding: 20px; margin-bottom: 16px; text-align: center; }
-    .balance-amount { font-size: 36px; font-weight: 800; color: #ffffff; margin: 10px 0 5px; }
-    .balance-amount span { font-size: 18px; color: #3b82f6; }
-    .usd-value { color: #10b981; font-weight: 600; font-size: 14px; background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 20px; display: inline-block; }
+    .card { background: #131722; border: 1px solid #1e2640; border-radius: 18px; padding: 16px; margin-bottom: 14px; position: relative; }
+    
+    /* Balance Box */
+    .balance-header { display: flex; justify-content: space-between; align-items: center; }
+    .balance-title { font-size: 11px; color: #64748b; font-weight: 700; letter-spacing: 0.5px; }
+    .history-btn { background: #1e2640; border: none; color: #94a3b8; padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer; }
+    .balance-val { font-size: 38px; font-weight: 800; margin: 12px 0 2px; }
+    .balance-val span { font-size: 20px; font-weight: 700; }
+    .usd-val { color: #10b981; font-size: 12px; font-weight: 600; margin-bottom: 14px; }
+    
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .action-btn { background: #1e2640; border: 1px solid #2d3748; color: #fff; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
 
-    /* Buttons */
-    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-    .btn { background: #1e2640; color: #ffffff; border: 1px solid #2d3748; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn:active { transform: scale(0.96); }
-    .btn-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; }
-    .btn-pending { background: #d97706; border: none; cursor: not-allowed; }
-    .btn-completed { background: #059669; border: none; cursor: not-allowed; }
+    /* Daily Reward Card */
+    .reward-box { display: flex; justify-content: space-between; align-items: center; }
+    .reward-text .title { font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase; }
+    .reward-text .amount { font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px; }
+    .claim-btn { background: #ffffff; color: #000000; border: none; padding: 8px 18px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; }
 
-    /* Inputs */
-    .input-field { width: 100%; background: #0b0e14; border: 1px solid #1e2640; border-radius: 12px; padding: 14px; color: #fff; margin-bottom: 12px; font-size: 14px; outline: none; }
-    .input-field:focus { border-color: #2563eb; }
+    /* Quick Actions Grid */
+    .section-title { font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; }
+    .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+    .quick-item { background: #131722; border: 1px solid #1e2640; border-radius: 14px; padding: 12px 6px; text-align: center; cursor: pointer; }
+    .quick-item i { font-size: 18px; color: #3b82f6; margin-bottom: 6px; display: block; }
+    .quick-item span { font-size: 11px; color: #94a3b8; font-weight: 600; }
 
-    /* Navigation */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #131722; border-top: 1px solid #1e2640; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
-    .nav-item { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 11px; cursor: pointer; flex: 1; gap: 4px; }
-    .nav-item.active { color: #3b82f6; font-weight: 600; }
+    /* Market Overview */
+    .market-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .view-all { background: #1e2640; border: none; color: #94a3b8; padding: 4px 10px; border-radius: 8px; font-size: 11px; }
+    .crypto-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1a202c; }
+    .crypto-row:last-child { border-bottom: none; }
+    .crypto-info { display: flex; align-items: center; gap: 10px; }
+    .crypto-icon { width: 32px; height: 32px; background: #1e2640; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; }
+    .crypto-names .name { font-size: 13px; font-weight: 700; }
+    .crypto-names .symbol { font-size: 10px; color: #64748b; }
+    .crypto-price { text-align: right; }
+    .crypto-price .price { font-size: 13px; font-weight: 700; }
+    .crypto-price .change { font-size: 10px; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 2px 6px; border-radius: 4px; }
+
+    /* Mining Center */
+    .mining-center { text-align: center; padding: 30px 10px; }
+    .cube-icon { font-size: 48px; color: #94a3b8; margin-bottom: 15px; }
+    .mine-big-btn { background: #ffffff; color: #000; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 14px; margin-top: 20px; cursor: pointer; }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #131722; border-top: 1px solid #1e2640; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 10px; cursor: pointer; flex: 1; gap: 3px; }
+    .nav-btn i { font-size: 16px; }
+    .nav-btn.active { color: #ffffff; font-weight: 700; }
+    .nav-btn.active i { color: #3b82f6; }
+
+    /* Modal / Popup */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 200; }
+    .modal-card { background: #131722; border: 1px solid #1e2640; border-radius: 16px; padding: 20px; width: 85%; max-width: 320px; text-align: center; }
+    .modal-title { font-size: 14px; font-weight: 600; margin-bottom: 15px; color: #fff; }
+    .modal-close { background: #1e2640; color: #3b82f6; border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <!-- Home Page -->
+    <!-- TOP USER HEADER -->
+    <div class="top-bar">
+      <div class="user-profile">
+        <div class="avatar" id="userAvatar">A</div>
+        <div class="user-details">
+          <h4 id="userName">adi_modaretor</h4>
+          <span class="verified-tag"><i class="fa-solid fa-shield-halved" style="color:#3b82f6;"></i> Verified Miner</span>
+        </div>
+      </div>
+      <button class="bell-btn"><i class="fa-regular fa-bell"></i></button>
+    </div>
+
+    <!-- HOME PAGE -->
     <div id="page-home" class="page active">
-      <div class="header-bar">
-        <div class="user-info">
-          <div class="avatar-circle" id="userAvatar">U</div>
-          <div>
-            <h4 id="userName">User</h4>
-            <span style="font-size: 11px; color: #64748b;">ID: <span id="profId">...</span></span>
-          </div>
+      <div class="card">
+        <div class="balance-header">
+          <span class="balance-title">TOTAL BALANCE</span>
+          <button class="history-btn" onclick="openModal('History Feature Coming Soon')">History &gt;</button>
+        </div>
+        <div class="balance-val"><span id="totalBalance">0</span> <span>ADI$</span></div>
+        <div class="usd-val" id="usdValue">≈ $0.00 USD</div>
+        <div class="btn-row">
+          <button class="action-btn" onclick="openModal('Exchange Feature Coming Soon')"><i class="fa-solid fa-right-left"></i> Exchange</button>
+          <button class="action-btn" onclick="switchTab('page-profile', document.getElementById('nav-profile'))"><i class="fa-solid fa-wallet"></i> Wallet</button>
+        </div>
+      </div>
+
+      <div class="card reward-box">
+        <div class="reward-text">
+          <div class="title">DAILY REWARD</div>
+          <div class="amount">+1,000 ADI$ Token</div>
+        </div>
+        <button class="claim-btn" onclick="claimDailyReward()">Claim</button>
+      </div>
+
+      <div class="section-title">QUICK ACTIONS</div>
+      <div class="quick-grid">
+        <div class="quick-item" onclick="switchTab('page-mine', document.getElementById('nav-mine'))">
+          <i class="fa-solid fa-cube"></i>
+          <span>Mining</span>
+        </div>
+        <div class="quick-item" onclick="openModal('Boost feature available next season!')">
+          <i class="fa-solid fa-bolt"></i>
+          <span>Boost</span>
+        </div>
+        <div class="quick-item" onclick="switchTab('page-tasks', document.getElementById('nav-tasks'))">
+          <i class="fa-solid fa-list-check"></i>
+          <span>Tasks</span>
+        </div>
+        <div class="quick-item" onclick="switchTab('page-markets', document.getElementById('nav-markets'))">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Markets</span>
         </div>
       </div>
 
       <div class="card">
-        <span style="color: #94a3b8; font-size: 13px;">Total Balance</span>
-        <div class="balance-amount" id="totalBalance">0 <span>ADI$</span></div>
-        <div class="usd-value" id="usdValue">≈ $0.00 USD</div>
-      </div>
-
-      <div class="action-grid">
-        <button class="btn btn-primary" id="claimBtn" onclick="claimDailyReward()">🎁 Daily Claim</button>
-        <button class="btn" onclick="startMining()">⛏️ Start Mining</button>
+        <div class="market-header">
+          <span class="balance-title">MARKET OVERVIEW</span>
+          <button class="view-all" onclick="switchTab('page-markets', document.getElementById('nav-markets'))">View All</button>
+        </div>
+        <div class="crypto-row">
+          <div class="crypto-info">
+            <div class="crypto-icon">ADI</div>
+            <div class="crypto-names">
+              <div class="name">ADI$ Token</div>
+              <div class="symbol">Native Token</div>
+            </div>
+          </div>
+          <div class="crypto-price">
+            <div class="price">$0.000100</div>
+            <span class="change">+0.00%</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Mine Page -->
+    <!-- MINE PAGE -->
     <div id="page-mine" class="page">
-      <h3 style="margin-bottom: 15px;">Daily Mining</h3>
-      <div class="card">
-        <p style="color: #94a3b8; margin-bottom: 15px; font-size: 14px;">Claim 500 $ADI Tokens every 24 hours.</p>
-        <button class="btn btn-primary" style="width: 100%;" onclick="startMining()">⛏️ Mine 500 $ADI</button>
+      <div class="card mining-center">
+        <i class="fa-solid fa-cube cube-icon"></i>
+        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">Mining Protocol</h3>
+        <p style="font-size: 12px; color: #64748b;">Tap below to initialize block mining and claim tokens.</p>
+        <button class="mine-big-btn" onclick="startMining()">► Start Mining (+500 ADI$)</button>
       </div>
     </div>
 
-    <!-- Markets Page -->
+    <!-- MARKETS PAGE -->
     <div id="page-markets" class="page">
-      <h3 style="margin-bottom: 15px;">Market Overview</h3>
       <div class="card">
-        <div style="font-size: 20px; font-weight: bold; color: #10b981;">$0.000100</div>
-        <div style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Estimated Listing Price</div>
+        <div class="section-title" style="margin-bottom: 14px;">LIVE MARKET METRICS</div>
+        <div class="crypto-row">
+          <div class="crypto-info">
+            <div class="crypto-icon">ADI</div>
+            <div class="crypto-names"><div class="name">ADI$ Token</div></div>
+          </div>
+          <div class="crypto-price"><div class="price">$0.000100</div></div>
+        </div>
+        <div class="crypto-row">
+          <div class="crypto-info">
+            <div class="crypto-icon"><i class="fa-brands fa-bitcoin"></i></div>
+            <div class="crypto-names"><div class="name">Bitcoin</div></div>
+          </div>
+          <div class="crypto-price"><div class="price">$76,863.98</div></div>
+        </div>
+        <div class="crypto-row">
+          <div class="crypto-info">
+            <div class="crypto-icon"><i class="fa-brands fa-ethereum"></i></div>
+            <div class="crypto-names"><div class="name">Ethereum</div></div>
+          </div>
+          <div class="crypto-price"><div class="price">$3,420.50</div></div>
+        </div>
       </div>
     </div>
 
-    <!-- Tasks Page -->
+    <!-- TASKS PAGE -->
     <div id="page-tasks" class="page">
-      <h3 style="margin-bottom: 15px;">Tasks & Rewards</h3>
-      <div class="card" style="text-align: left;">
-        <h4>Join Announcement Channel</h4>
-        <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 12px;">Reward: +2,000 $ADI</p>
-        <button id="task1Btn" class="btn btn-primary" style="width: 100%;" onclick="submitTask('task1', 2000, 'https://t.me/adiofficialannusment')">Join & Submit</button>
+      <div class="card">
+        <div class="section-title" style="margin-bottom: 14px;">AVAILABLE MISSIONS</div>
+        <div class="crypto-row">
+          <div>
+            <div style="font-size: 13px; font-weight: 700;">Join Telegram Channel</div>
+            <div style="font-size: 11px; color: #10b981;">+2,000 ADI$</div>
+          </div>
+          <button class="claim-btn" id="task1Btn" onclick="submitTask('task1', 2000, 'https://t.me/adiofficialannusment')">Done</button>
+        </div>
+        <div class="crypto-row">
+          <div>
+            <div style="font-size: 13px; font-weight: 700;">Subscribe YouTube Channel</div>
+            <div style="font-size: 11px; color: #10b981;">+3,000 ADI$</div>
+          </div>
+          <button class="claim-btn" id="task2Btn" onclick="submitTask('task2', 3000, 'https://youtube.com')">Done</button>
+        </div>
       </div>
     </div>
 
-    <!-- Profile Page -->
+    <!-- PROFILE PAGE -->
     <div id="page-profile" class="page">
-      <h3 style="margin-bottom: 15px;">Profile Settings</h3>
-      <div class="card" style="text-align: left;">
-        <p style="margin-bottom: 8px;"><strong>Username:</strong> <span id="profUser">...</span></p>
-        <p><strong>Total Earned:</strong> <span id="profBalance" style="color: #3b82f6;">0 ADI$</span></p>
-      </div>
-
-      <div class="card" style="text-align: left;">
-        <h4 style="margin-bottom: 10px;">Withdrawal Wallet</h4>
-        <input type="text" id="walletInput" class="input-field" placeholder="Enter TON / BEP20 Wallet Address">
-        <button class="btn btn-primary" style="width: 100%;" onclick="connectOrSaveWallet()">Save Wallet</button>
+      <div class="card">
+        <div class="section-title" style="margin-bottom: 14px;">ACCOUNT VERIFICATION</div>
+        <div style="font-size: 12px; margin-bottom: 8px; color: #94a3b8;">Username: <span id="profUser" style="color: #fff; font-weight: 700;">...</span></div>
+        <div style="font-size: 12px; margin-bottom: 8px; color: #94a3b8;">Telegram ID: <span id="profId" style="color: #fff; font-weight: 700;">...</span></div>
+        <div style="font-size: 12px; margin-bottom: 16px; color: #94a3b8;">Current Balance: <span id="profBalance" style="color: #10b981; font-weight: 700;">0 ADI$</span></div>
+        <button class="action-btn" style="width: 100%; border-radius: 12px;" onclick="connectOrSaveWallet()"><i class="fa-solid fa-link"></i> Connect TON Wallet</button>
       </div>
     </div>
   </div>
 
-  <!-- Bottom Navigation -->
+  <!-- BOTTOM NAVIGATION -->
   <div class="bottom-nav">
-    <div class="nav-item active" onclick="switchTab('page-home', this)">Home</div>
-    <div class="nav-item" onclick="switchTab('page-mine', this)">Mine</div>
-    <div class="nav-item" onclick="switchTab('page-markets', this)">Markets</div>
-    <div class="nav-item" onclick="switchTab('page-tasks', this)">Tasks</div>
-    <div class="nav-item" onclick="switchTab('page-profile', this)">Profile</div>
+    <div class="nav-btn active" onclick="switchTab('page-home', this)"><i class="fa-solid fa-house"></i><span>Home</span></div>
+    <div class="nav-btn" id="nav-mine" onclick="switchTab('page-mine', this)"><i class="fa-solid fa-cube"></i><span>Mine</span></div>
+    <div class="nav-btn" id="nav-markets" onclick="switchTab('page-markets', this)"><i class="fa-solid fa-chart-simple"></i><span>Markets</span></div>
+    <div class="nav-btn" id="nav-tasks" onclick="switchTab('page-tasks', this)"><i class="fa-solid fa-list-check"></i><span>Tasks</span></div>
+    <div class="nav-btn" id="nav-profile" onclick="switchTab('page-profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
   </div>
 
-  <!-- App Script Logic -->
+  <!-- POPUP MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card">
+      <div class="modal-title" id="modalText">Message</div>
+      <button class="modal-close" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
   <script>
-    // 1. Firebase Config
+    // 1. FIREBASE CONFIG
     const firebaseConfig = {
       databaseURL: "https://visit-780ae-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // 2. Telegram WebApp Init
+    // 2. TELEGRAM WEBAPP INIT
     const tg = window.Telegram ? window.Telegram.WebApp : null;
-    let userId = "guest_user";
-    let userName = "Airdrop User";
+    let userId = "8564284672";
+    let userName = "adi_modaretor";
     let userBalance = 0;
     let tasksData = {};
     let lastMineDate = "";
@@ -153,26 +279,19 @@
       tg.expand();
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         userId = tg.initDataUnsafe.user.id.toString();
-        userName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "User";
+        userName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "adi_modaretor";
       }
     }
 
     const todayDate = new Date().toISOString().slice(0, 10);
 
-    // 3. UI Setup
-    const nameElem = document.getElementById('userName');
-    if (nameElem) nameElem.innerText = userName;
-    
-    const avatarElem = document.getElementById('userAvatar');
-    if (avatarElem) avatarElem.innerText = userName[0].toUpperCase();
-    
-    const profUserElem = document.getElementById('profUser');
-    if (profUserElem) profUserElem.innerText = userName;
-    
-    const profIdElem = document.getElementById('profId');
-    if (profIdElem) profIdElem.innerText = userId;
+    // 3. UI SETUP
+    document.getElementById('userName').innerText = userName;
+    document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
+    document.getElementById('profUser').innerText = userName;
+    document.getElementById('profId').innerText = userId;
 
-    // 4. Anti-Cheat & IP Detection
+    // 4. IP ANTI-CHEAT LOGIC
     fetch('https://api.ipify.org?format=json')
       .then(res => res.json())
       .then(data => {
@@ -180,18 +299,15 @@
           userIP = data.ip.replace(/\./g, '_');
           checkIpBanStatus(userIP);
         }
-      })
-      .catch(e => console.log("IP fetch error", e));
+      }).catch(e => console.log(e));
 
     function checkIpBanStatus(ip) {
       const ipRef = database.ref('ip_logs/' + ip);
       ipRef.once('value').then(snapshot => {
         const ipData = snapshot.val();
-        if (ipData) {
-          if (ipData.primaryUserId && ipData.primaryUserId !== userId) {
-            executeBan("Multiple accounts detected on the same IP address.");
-          }
-        } else {
+        if (ipData && ipData.primaryUserId && ipData.primaryUserId !== userId) {
+          executeBan("Multiple accounts detected on same IP.");
+        } else if (!ipData) {
           ipRef.set({ primaryUserId: userId, createdAt: Date.now() });
         }
       });
@@ -200,149 +316,87 @@
     function executeBan(reason) {
       isBanned = true;
       database.ref('users/' + userId).update({ banned: true, banReason: reason });
-      document.body.innerHTML = `
-        <div style="text-align:center; padding: 50px 20px; color: #ef4444; font-family: sans-serif;">
-          <h2>🚫 ACCOUNT BANNED</h2>
-          <p style="color: #94a3b8; margin-top: 10px;">${reason}</p>
-        </div>
-      `;
+      document.body.innerHTML = `<div style="text-align:center; padding:50px; color:#ef4444;"><h2>🚫 ACCOUNT BANNED</h2><p>${reason}</p></div>`;
     }
 
-    // 5. Firebase Realtime Listener
+    // 5. FIREBASE REALTIME SYNC
     const userRef = database.ref('users/' + userId);
     userRef.on('value', (snapshot) => {
       if (isBanned) return;
       const data = snapshot.val();
       if (data) {
-        if (data.banned) {
-          executeBan(data.banReason || "Suspicious activity detected.");
-          return;
-        }
+        if (data.banned) { executeBan(data.banReason || "Suspicious activity detected."); return; }
         userBalance = Number(data.balance) || 0;
         tasksData = data.tasks || {};
         lastMineDate = data.lastMineDate || "";
         lastClaimDate = data.lastClaimDate || "";
-        
-        const walletInput = document.getElementById('walletInput');
-        if (data.wallet && walletInput) {
-          walletInput.value = data.wallet;
-        }
       } else {
-        userRef.set({ username: userName, balance: 1000, wallet: "", tasks: {} });
-        userBalance = 1000;
+        userRef.set({ username: userName, balance: 0, wallet: "", tasks: {} });
+        userBalance = 0;
       }
       updateUI();
-      updateTasksUI();
     });
 
-    // 6. Balance UI Update
     function updateUI() {
-      const totalBal = document.getElementById('totalBalance');
-      if (totalBal) totalBal.innerHTML = userBalance.toLocaleString() + ' <span>ADI$</span>';
-
-      const usdVal = document.getElementById('usdValue');
-      if (usdVal) usdVal.innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
-
-      const profBal = document.getElementById('profBalance');
-      if (profBal) profBal.innerText = userBalance.toLocaleString() + ' ADI$';
+      document.getElementById('totalBalance').innerText = userBalance.toLocaleString();
+      document.getElementById('usdValue').innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
+      document.getElementById('profBalance').innerText = userBalance.toLocaleString() + ' ADI$';
     }
 
-    // 7. Navigation
+    // 6. TAB NAVIGATION
     function switchTab(pageId, navElement) {
       if (isBanned) return;
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      const targetPage = document.getElementById(pageId);
-      if (targetPage) targetPage.classList.add('active');
+      document.getElementById(pageId).classList.add('active');
 
-      if (navElement) {
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        navElement.classList.add('active');
-      }
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      if (navElement) navElement.classList.add('active');
     }
 
-    // 8. Daily Reward (1,000 $ADI)
+    // 7. CLAIM & MINING
     function claimDailyReward() {
       if (isBanned) return;
-      if (lastClaimDate === todayDate) {
-        showAlert("You have already claimed today's reward! Come back tomorrow.");
-        return;
-      }
-      const newBalance = userBalance + 1000;
-      userRef.update({ 
-        balance: newBalance,
-        lastClaimDate: todayDate,
-        ipAddress: userIP || "unknown"
-      });
-      showAlert('Success! Claimed 1,000 ADI$');
+      if (lastClaimDate === todayDate) { openModal("You have already claimed today's reward!"); return; }
+      userBalance += 1000;
+      userRef.update({ balance: userBalance, lastClaimDate: todayDate });
+      openModal("Success! Claimed 1,000 ADI$");
     }
 
-    // 9. Daily Mining (500 $ADI)
     function startMining() {
       if (isBanned) return;
-      if (lastMineDate === todayDate) {
-        showAlert("Daily mining limit reached (1/1)! Try again tomorrow.");
-        return;
-      }
-      const newBalance = userBalance + 500;
-      userRef.update({ 
-        balance: newBalance,
-        lastMineDate: todayDate,
-        ipAddress: userIP || "unknown"
-      });
-      showAlert('Mined +500 ADI$ Tokens!');
+      if (lastMineDate === todayDate) { openModal("Daily mining limit reached (1/1)!"); return; }
+      userBalance += 500;
+      userRef.update({ balance: userBalance, lastMineDate: todayDate });
+      openModal("Mined +500 ADI$ Tokens!");
     }
 
-    // 10. Task Handler
+    // 8. TASKS & WALLET
     function submitTask(taskId, reward, link) {
       if (isBanned) return;
       window.open(link, '_blank');
-      database.ref('users/' + userId + '/tasks/' + taskId).set({
-        status: 'pending',
-        reward: reward,
-        submittedAt: Date.now()
-      });
-      showAlert('Task submitted! Status: Under Review');
+      database.ref('users/' + userId + '/tasks/' + taskId).set({ status: 'completed', reward: reward });
+      userBalance += reward;
+      userRef.update({ balance: userBalance });
+      openModal("Task Completed! Added +" + reward + " ADI$");
     }
 
-    function updateTasksUI() {
-      ['task1'].forEach(taskId => {
-        const btn = document.getElementById(taskId + 'Btn');
-        if (btn && tasksData[taskId]) {
-          const status = tasksData[taskId].status;
-          if (status === 'pending') {
-            btn.innerText = "In Review";
-            btn.className = "btn btn-pending";
-            btn.onclick = null;
-          } else if (status === 'approved') {
-            btn.innerText = "Approved";
-            btn.className = "btn btn-completed";
-            btn.onclick = null;
-          }
-        }
-      });
-    }
-
-    // 11. Wallet Handler
     function connectOrSaveWallet() {
-      if (isBanned) return;
-      const walletInput = document.getElementById('walletInput');
-      const address = walletInput ? walletInput.value.trim() : "";
-      if (address.length > 5) {
-        userRef.update({ wallet: address });
-        showAlert('Wallet Address Saved Successfully!');
-      } else {
-        showAlert('Please enter a valid wallet address');
+      const w = prompt("Enter your TON / BEP20 Wallet Address:");
+      if (w && w.length > 5) {
+        userRef.update({ wallet: w });
+        openModal("TON Wallet Saved Successfully!");
       }
     }
 
-    // 12. Alert Helper
-    function showAlert(msg) {
-      if (tg && tg.showAlert) { 
-        tg.showAlert(msg); 
-      } else { 
-        alert(msg); 
-      }
+    // 9. MODAL POPUP HELPERS
+    function openModal(msg) {
+      document.getElementById('modalText').innerText = msg;
+      document.getElementById('modalOverlay').style.display = 'flex';
+    }
+    function closeModal() {
+      document.getElementById('modalOverlay').style.display = 'none';
     }
   </script>
 </body>
-</html>
+  </html>
+      
