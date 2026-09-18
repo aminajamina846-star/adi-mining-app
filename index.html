@@ -257,14 +257,29 @@
     </div>
   </div>
 
-  <script>
-    // FIREBASE INITIALIZATION
-    const firebaseConfig = {
-      databaseURL: "https://visit-780ae-default-rtdb.asia-southeast1.firebasedatabase.app"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+  <!-- Firebase SDK Libraries -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+<script>
+  // Firebase Config & Initialization
+  const firebaseConfig = {
+    apiKey: "AIzaSyAn4TLzUTqGvDz9Os-rBzKyVVGhP6Cj1D0",
+    authDomain: "adi-mining-bot-6e8f1.firebaseapp.com",
+    databaseURL: "https://adi-mining-bot-6e8f1-default-rtdb.firebaseio.com",
+    projectId: "adi-mining-bot-6e8f1",
+    storageBucket: "adi-mining-bot-6e8f1.firebasestorage.app",
+    messagingSenderId: "74884774159",
+    appId: "1:74884774159:web:312e04011957a2a078667a",
+    measurementId: "G-G55XM74MM4"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+</script>
+  
+  
     // TELEGRAM USER DATA
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     let userId = "8564284672";
