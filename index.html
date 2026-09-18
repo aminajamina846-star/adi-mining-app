@@ -113,7 +113,25 @@
           <button class="history-btn" onclick="openModal('History Feature Coming Soon')">History &gt;</button>
         </div> <div id="historyList">
   <!-- ফায়ারবেস থেকে হিস্ট্রি এখানে অটোমেটিক লোড হবে -->
-        </div>
+        </div><!-- History Section Header -->
+<h3 style="color: #fff; margin-top: 15px;">Transaction History</h3>
+
+<!-- Firebase History Container -->
+<div id="historyList" style="max-height: 250px; overflow-y: auto; padding: 5px;">
+  <!-- ফায়ারবেস থেকে হিস্ট্রি এখানে অটোমেটিক লোড হবে -->
+</div>
+        function updateUI() {
+  if (document.getElementById('userName')) document.getElementById('userName').innerText = userName;
+  if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
+  if (document.getElementById('profUser')) document.getElementById('profUser').innerText = userName;
+  if (document.getElementById('profId')) document.getElementById('profId').innerText = userId;
+  if (document.getElementById('totalBalance')) document.getElementById('totalBalance').innerText = userBalance.toLocaleString() + " ADI";
+  if (document.getElementById('profBalance')) document.getElementById('profBalance').innerText = userBalance.toLocaleString() + " ADI";
+  
+  // History Auto Load Call
+  loadHistory();
+}
+        
         
         <div class="balance-val"><span id="totalBalance">0</span> <span>ADI$</span></div>
         <div class="usd-val" id="usdValue">≈ $0.00 USD</div>
