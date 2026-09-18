@@ -320,7 +320,7 @@
           <span class="card-label">Total Balance</span>
           <button class="tag-btn" onclick="showAlert('History Feature Coming Soon')">History <i class="fa-solid fa-chevron-right"></i></button>
         </div>
-        <div class="balance-val" id="totalBalance">0 <span>ADI$</span></div>
+        <div class="balance-val" id="user-balance">0 <span>ADI$</span></div>
         <div class="sub-value" id="usdValue">≈ $0.00 USD</div>
         <div class="btn-row">
           <button class="btn btn-metallic" onclick="showAlert('Exchange Portal Opening Soon')"><i class="fa-solid fa-arrow-right-arrow-left"></i> Exchange</button>
@@ -334,8 +334,8 @@
           <div style="font-size: 11px; font-weight: 700; color: var(--text-sub);">DAILY REWARD</div>
           <div style="font-size: 13px; font-weight: 800; margin-top: 2px;">+1,000 ADI$ Token</div>
         </div>
-        <button class="btn btn-metallic" id="claimBtn" style="padding: 8px 16px; flex: initial; font-size: 11px;" onclick="claimDailyReward()">Claim</button>
-      </div>
+        <button class="btn btn-metallic" id="claimBtn" onclick="claimDailyReward()" style="padding: 8px 16px; flex: initial; font-size: 13px;">
+
 
       <div class="section-title">Quick Actions</div>
       <div class="grid-4">
@@ -459,135 +459,100 @@
     <div class="nav-item" onclick="switchTab('page-profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
   </div>
 
-  <script>
-    const firebaseConfig = {
-      databaseURL: "https://ahs-shop-default-rtdb.firebaseio.com"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    // User IP Track & Sync to Database
-fetch('https://api.ipify.org?format=json')
-  .then(res => res.json())
-  .then(data => {
-    if (userId && data.ip) {
-      database.ref('users/' + userId).update({ ipAddress: data.ip });
+<script>
+  // ১. ফায়ারবেস কনফিগারেশন
+  const firebaseConfig = {
+    databaseURL: "https://ahs-shop-default-rtdb.firebaseio.com"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
+
+  // ২. টেলিগ্রাম ইউজার ডাটা
+  const tg = window.Telegram ? window.Telegram.WebApp : null;
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+  const userId = tg?.initDataUnsafe?.user?.id?.toString() || "guest_user";
+  const todayDate = new Date().toISOString().slice(0, 10);
+
+  let currentBalance = 0;
+  let lastMineDate = "";
+  let lastClaimDate = "";
+  let userIP = "";
+
+  // ৩. ইউজার IP ট্র্যাক করা
+  fetch('https://api.ipify.org?format=json')
+    .then(res => res.json())
+    .then(data => {
+      if (data.ip) {
+        userIP = data.ip.replace(/\./g, '_');
+      }
+    }).catch(e => console.log("IP fetch error", e));
+
+  // ৪. ফায়ারবেস থেকে ডাটা সিঙ্ক করা
+  database.ref('users/' + userId).on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      currentBalance = data.balance || 0;
+      lastMineDate = data.lastMineDate || "";
+      lastClaimDate = data.lastClaimDate || "";
+    }
+    
+    // UI-তে ব্যালেন্স আপডেট
+    const balanceElem = document.getElementById('user-balance');
+    if (balanceElem) {
+      balanceElem.innerText = currentBalance.toLocaleString();
     }
   });
-    
 
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
-    let userId = "guest_user";
-    let userName = "Airdrop User";
-    let userBalance = 0;
-    let tasksData = {};
-
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        userId = tg.initDataUnsafe.user.id.toString();
-        userName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "User";
-      }
+  // ৫. Daily Claim (দিনে ১ বার - ১,০০০ $ADI)
+  function claimDailyReward() {
+    if (lastClaimDate === todayDate) {
+      alert("You have already claimed today's reward! Come back tomorrow.");
+      return;
     }
 
-    document.getElementById('userName').innerText = userName;
-    document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
-    document.getElementById('profUser').innerText = userName;
-    document.getElementById('profId').innerText = userId;
+    currentBalance += 1000;
+    lastClaimDate = todayDate;
 
-    const userRef = database.ref('users/' + userId);
-    userRef.on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        userBalance = Number(data.balance) || 0;
-        tasksData = data.tasks || {};
-        if (data.wallet) {
-          document.getElementById('walletInput').value = data.wallet;
-        }
-      } else {
-        userRef.set({ username: userName, balance: 1000, wallet: "", tasks: {} });
-        userBalance = 1000;
-      }
-      updateUI();
-      updateTasksUI();
+    database.ref('users/' + userId).update({
+      balance: currentBalance,
+      lastClaimDate: todayDate,
+      ipAddress: userIP || "unknown"
+    }).then(() => {
+      alert("Success! Claimed 1,000 ADI$");
+    });
+  }
+
+  // ৬. Daily Mining (দিনে ১ বার - ৫০০ $ADI)
+  function startMining() {
+    if (lastMineDate === todayDate) {
+      alert("Daily mining limit reached (1/1)! Try again tomorrow.");
+      return;
+    }
+
+    currentBalance += 500;
+    lastMineDate = todayDate;
+
+    database.ref('users/' + userId).update({
+      balance: currentBalance,
+      lastMineDate: todayDate,
+      ipAddress: userIP || "unknown"
     });
 
-    function updateUI() {
-      document.getElementById('totalBalance').innerHTML = userBalance.toLocaleString() + ' <span>ADI$</span>';
-      document.getElementById('usdValue').innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
-      document.getElementById('profBalance').innerText = userBalance.toLocaleString() + ' ADI$';
-    }
-
-    function switchTab(pageId, navElement) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(pageId).classList.add('active');
-
-      if (navElement) {
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        navElement.classList.add('active');
-      }
-    }
-
-    function claimDailyReward() {
-      const newBalance = userBalance + 1000;
-      userRef.update({ balance: newBalance });
-      showAlert('Success! Claimed 1,000 ADI$');
-    }
-
-    function startMining() {
-      const newBalance = userBalance + 500;
-      userRef.update({ balance: newBalance });
-      showAlert('Mined +500 ADI$ Tokens!');
-    }
-
-    function submitTask(taskId, reward, link) {
-      window.open(link, '_blank');
-
-      database.ref('users/' + userId + '/tasks/' + taskId).set({
-        status: 'pending',
-        reward: reward,
-        submittedAt: Date.now()
-      });
-
-      showAlert('Task submitted! Status: Under Review');
-    }
-
-    function updateTasksUI() {
-      ['task1', 'task2'].forEach(taskId => {
-        const btn = document.getElementById(taskId + 'Btn');
-        if (btn && tasksData[taskId]) {
-          const status = tasksData[taskId].status;
-          if (status === 'pending') {
-            btn.innerText = "In Review";
-            btn.className = "btn btn-pending";
-            btn.onclick = null;
-          } else if (status === 'approved') {
-            btn.innerText = "Approved";
-            btn.className = "btn btn-completed";
-            btn.onclick = null;
-          }
-        }
+    if (userIP) {
+      database.ref('ip_logs/' + userIP).set({
+        lastUserId: userId,
+        lastActive: Date.now()
       });
     }
 
-    function connectOrSaveWallet() {
-      const address = document.getElementById('walletInput').value.trim();
-      if (address.length > 5) {
-        userRef.update({ wallet: address });
-        showAlert('Wallet Address Saved Successfully!');
-      } else {
-        showAlert('Please enter a valid wallet address');
-      }
-    }
+    alert("Mined +500 ADI$ Tokens!");
+  }
+</script>
 
-    function showAlert(msg) {
-      if (tg && tg.showAlert) { 
-        tg.showAlert(msg); 
-      } else { 
-        alert(msg); 
-      }
-    }
-  </script>
 </body>
                 </html>
             
