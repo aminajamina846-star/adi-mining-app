@@ -470,10 +470,10 @@
       </div>
 
       <!-- Invite Friends Button -->
-      <button class="btn btn-metallic" onclick="shareReferralLink()" style="width: 100%; margin-bottom: 16px; padding: 14px; font-size: 13px;">
-        <i class="fa-solid fa-users"></i> Invite Friends (+10 ADI)
+      <button class="btn btn-metallic" onclick="switchTab('page-referral', this)">
+  <i class="fa-solid fa-user-plus"></i> Invite Friends (+10 ADI)
       </button>
-
+      
       <!-- Daily Reward Card -->
       <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
         <div>
@@ -751,7 +751,7 @@
     // ১. নোটিফিকেশন ভ্যারিয়েবল ডিক্লেয়ারেশন
 let liveNotificationMsg = "No new notifications right now.";
 
-/// ২. পেজ সুইচিং (Tab Switching) সেফ ফাংশন
+// ২. পেজ সুইচিং (Tab Switching) সেফ ফাংশন
 function switchTab(pageId, element) {
   // সব পেজ হাইড (Hide) করা
   const pages = document.querySelectorAll('.page');
@@ -765,7 +765,7 @@ function switchTab(pageId, element) {
     console.error("Page ID not found: " + pageId);
   }
 
-  // যদি বটম নেভিগেশন থেকে element পাঠানো হয় কেবল তখনই অ্যাক্টিভ ক্লাস চেঞ্জ হবে
+  // যদি বটম নেভিগেশন বা বাটন থেকে element পাঠানো হয় কেবল তখনই অ্যাক্টিভ ক্লাস চেঞ্জ হবে
   if (element && element.classList) {
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => item.classList.remove('active'));
