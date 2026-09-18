@@ -48,6 +48,7 @@
     .reward-text .title { font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase; }
     .reward-text .amount { font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px; }
     .claim-btn { background: #ffffff; color: #000000; border: none; padding: 8px 18px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .claim-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
 
     /* Quick Actions Grid */
     .section-title { font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; }
@@ -73,6 +74,7 @@
     .mining-center { text-align: center; padding: 30px 10px; }
     .cube-icon { font-size: 48px; color: #94a3b8; margin-bottom: 15px; }
     .mine-big-btn { background: #ffffff; color: #000; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 14px; margin-top: 20px; cursor: pointer; }
+    .mine-big-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
 
     /* Bottom Navigation Bar */
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #131722; border-top: 1px solid #1e2640; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
@@ -123,7 +125,7 @@
           <div class="title">DAILY REWARD</div>
           <div class="amount">+1,000 ADI$ Token</div>
         </div>
-        <button class="claim-btn" onclick="claimDailyReward()">Claim</button>
+        <button class="claim-btn" id="dailyClaimBtn" onclick="claimDailyReward()">Claim</button>
       </div>
 
       <div class="section-title">QUICK ACTIONS</div>
@@ -173,7 +175,7 @@
         <i class="fa-solid fa-cube cube-icon"></i>
         <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">Mining Protocol</h3>
         <p style="font-size: 12px; color: #64748b;">Tap below to initialize block mining and claim tokens.</p>
-        <button class="mine-big-btn" onclick="startMining()">► Start Mining (+500 ADI$)</button>
+        <button class="mine-big-btn" id="mineBtn" onclick="startMining()">► Start Mining (+500 ADI$)</button>
       </div>
     </div>
 
@@ -214,14 +216,14 @@
             <div style="font-size: 13px; font-weight: 700;">Join Telegram Channel</div>
             <div style="font-size: 11px; color: #10b981;">+2,000 ADI$</div>
           </div>
-          <button class="claim-btn" id="task1Btn" onclick="submitTask('task1', 2000, 'https://t.me/adiofficialannusment')">Done</button>
+          <button class="claim-btn" id="task1Btn" onclick="handleTask('task1', 2000, 'https://t.me/adiofficialannusment')">Start</button>
         </div>
         <div class="crypto-row">
           <div>
             <div style="font-size: 13px; font-weight: 700;">Subscribe YouTube Channel</div>
             <div style="font-size: 11px; color: #10b981;">+3,000 ADI$</div>
           </div>
-          <button class="claim-btn" id="task2Btn" onclick="submitTask('task2', 3000, 'https://youtube.com')">Done</button>
+          <button class="claim-btn" id="task2Btn" onclick="handleTask('task2', 3000, 'https://youtube.com')">Start</button>
         </div>
       </div>
     </div>
@@ -256,14 +258,14 @@
   </div>
 
   <script>
-    // 1. FIREBASE CONFIG
+    // FIREBASE INITIALIZATION
     const firebaseConfig = {
       databaseURL: "https://visit-780ae-default-rtdb.asia-southeast1.firebasedatabase.app"
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // 2. TELEGRAM WEBAPP INIT
+    // TELEGRAM USER DATA
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     let userId = "8564284672";
     let userName = "adi_modaretor";
@@ -271,8 +273,6 @@
     let tasksData = {};
     let lastMineDate = "";
     let lastClaimDate = "";
-    let userIP = "";
-    let isBanned = false;
 
     if (tg) {
       tg.ready();
@@ -285,47 +285,16 @@
 
     const todayDate = new Date().toISOString().slice(0, 10);
 
-    // 3. UI SETUP
     document.getElementById('userName').innerText = userName;
     document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
     document.getElementById('profUser').innerText = userName;
     document.getElementById('profId').innerText = userId;
 
-    // 4. IP ANTI-CHEAT LOGIC
-    fetch('https://api.ipify.org?format=json')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.ip) {
-          userIP = data.ip.replace(/\./g, '_');
-          checkIpBanStatus(userIP);
-        }
-      }).catch(e => console.log(e));
-
-    function checkIpBanStatus(ip) {
-      const ipRef = database.ref('ip_logs/' + ip);
-      ipRef.once('value').then(snapshot => {
-        const ipData = snapshot.val();
-        if (ipData && ipData.primaryUserId && ipData.primaryUserId !== userId) {
-          executeBan("Multiple accounts detected on same IP.");
-        } else if (!ipData) {
-          ipRef.set({ primaryUserId: userId, createdAt: Date.now() });
-        }
-      });
-    }
-
-    function executeBan(reason) {
-      isBanned = true;
-      database.ref('users/' + userId).update({ banned: true, banReason: reason });
-      document.body.innerHTML = `<div style="text-align:center; padding:50px; color:#ef4444;"><h2>🚫 ACCOUNT BANNED</h2><p>${reason}</p></div>`;
-    }
-
-    // 5. FIREBASE REALTIME SYNC
+    // REALTIME DATABASE SYNC
     const userRef = database.ref('users/' + userId);
     userRef.on('value', (snapshot) => {
-      if (isBanned) return;
       const data = snapshot.val();
       if (data) {
-        if (data.banned) { executeBan(data.banReason || "Suspicious activity detected."); return; }
         userBalance = Number(data.balance) || 0;
         tasksData = data.tasks || {};
         lastMineDate = data.lastMineDate || "";
@@ -341,11 +310,50 @@
       document.getElementById('totalBalance').innerText = userBalance.toLocaleString();
       document.getElementById('usdValue').innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
       document.getElementById('profBalance').innerText = userBalance.toLocaleString() + ' ADI$';
+
+      // Update Daily Claim Button
+      const claimBtn = document.getElementById('dailyClaimBtn');
+      if (lastClaimDate === todayDate) {
+        claimBtn.innerText = "Claimed";
+        claimBtn.disabled = true;
+      } else {
+        claimBtn.innerText = "Claim";
+        claimBtn.disabled = false;
+      }
+
+      // Update Mining Button
+      const mineBtn = document.getElementById('mineBtn');
+      if (lastMineDate === todayDate) {
+        mineBtn.innerText = "Mined Today";
+        mineBtn.disabled = true;
+      } else {
+        mineBtn.innerText = "► Start Mining (+500 ADI$)";
+        mineBtn.disabled = false;
+      }
+
+      // Update Tasks Buttons
+      updateTaskButton('task1', 'task1Btn');
+      updateTaskButton('task2', 'task2Btn');
     }
 
-    // 6. TAB NAVIGATION
+    function updateTaskButton(taskId, btnId) {
+      const btn = document.getElementById(btnId);
+      const taskState = tasksData[taskId] ? tasksData[taskId].status : 'none';
+
+      if (taskState === 'completed') {
+        btn.innerText = "Done";
+        btn.disabled = true;
+      } else if (taskState === 'started') {
+        btn.innerText = "Claim";
+        btn.disabled = false;
+      } else {
+        btn.innerText = "Start";
+        btn.disabled = false;
+      }
+    }
+
+    // TAB SWITCHING
     function switchTab(pageId, navElement) {
-      if (isBanned) return;
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(pageId).classList.add('active');
 
@@ -353,31 +361,34 @@
       if (navElement) navElement.classList.add('active');
     }
 
-    // 7. CLAIM & MINING
+    // ACTIONS & LOGIC
     function claimDailyReward() {
-      if (isBanned) return;
-      if (lastClaimDate === todayDate) { openModal("You have already claimed today's reward!"); return; }
+      if (lastClaimDate === todayDate) return;
       userBalance += 1000;
       userRef.update({ balance: userBalance, lastClaimDate: todayDate });
       openModal("Success! Claimed 1,000 ADI$");
     }
 
     function startMining() {
-      if (isBanned) return;
-      if (lastMineDate === todayDate) { openModal("Daily mining limit reached (1/1)!"); return; }
+      if (lastMineDate === todayDate) return;
       userBalance += 500;
       userRef.update({ balance: userBalance, lastMineDate: todayDate });
       openModal("Mined +500 ADI$ Tokens!");
     }
 
-    // 8. TASKS & WALLET
-    function submitTask(taskId, reward, link) {
-      if (isBanned) return;
-      window.open(link, '_blank');
-      database.ref('users/' + userId + '/tasks/' + taskId).set({ status: 'completed', reward: reward });
-      userBalance += reward;
-      userRef.update({ balance: userBalance });
-      openModal("Task Completed! Added +" + reward + " ADI$");
+    function handleTask(taskId, reward, link) {
+      const currentState = tasksData[taskId] ? tasksData[taskId].status : 'none';
+
+      if (currentState === 'none') {
+        window.open(link, '_blank');
+        database.ref('users/' + userId + '/tasks/' + taskId).set({ status: 'started' });
+        openModal("Task Started! Return after joining to claim your reward.");
+      } else if (currentState === 'started') {
+        userBalance += reward;
+        database.ref('users/' + userId + '/tasks/' + taskId).set({ status: 'completed' });
+        userRef.update({ balance: userBalance });
+        openModal("Task Completed! Received +" + reward + " ADI$");
+      }
     }
 
     function connectOrSaveWallet() {
@@ -388,15 +399,15 @@
       }
     }
 
-    // 9. MODAL POPUP HELPERS
     function openModal(msg) {
       document.getElementById('modalText').innerText = msg;
       document.getElementById('modalOverlay').style.display = 'flex';
     }
+
     function closeModal() {
       document.getElementById('modalOverlay').style.display = 'none';
     }
   </script>
 </body>
-  </html>
-      
+                                                                                           </html>
+          
