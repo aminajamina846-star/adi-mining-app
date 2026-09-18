@@ -3,194 +3,455 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ADI$ Airdrop Bot</title>
+  <title>ADI$ Airdrop App</title>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <!-- Telegram WebApp SDK -->
+  <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- FontAwesome Icons -->
+
+  <!-- Firebase SDK (Compat Version for Realtime Database) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: #0b0e14; color: #ffffff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
-    
-    .container { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 90px; }
+    :root {
+      --bg-color: #000000;
+      --card-bg: rgba(20, 20, 20, 0.85);
+      --card-border: rgba(255, 255, 255, 0.15);
+      --text-main: #ffffff;
+      --text-sub: #a3a3a3;
+      --accent-silver: #e2e8f0;
+      --silver-glow: #cbd5e1;
+      --silver-gradient: linear-gradient(135deg, #f8fafc 0%, #94a3b8 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.07) 0%, transparent 40%),
+        radial-gradient(circle at 10% 90%, rgba(200, 200, 200, 0.03) 0%, transparent 30%);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      color: var(--text-main);
+      padding-bottom: 90px;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 16px;
+    }
+
+    /* Page View Handling */
     .page { display: none; }
-    .page.active { display: block; }
+    .page.active { 
+      display: block; 
+      animation: fadeIn 0.3s ease-in-out; 
+    }
 
-    /* Top User Bar */
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .user-profile { display: flex; align-items: center; gap: 10px; }
-    .avatar { width: 42px; height: 42px; background: #222938; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; border: 1px solid #2d3748; }
-    .user-details h4 { font-size: 15px; font-weight: 700; color: #ffffff; }
-    .verified-tag { font-size: 11px; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
-    .bell-btn { width: 38px; height: 38px; background: #131722; border: 1px solid #1e2640; border-radius: 10px; color: #fff; display: flex; align-items: center; justify-content: center; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-    /* Cards */
-    .card { background: #131722; border: 1px solid #1e2640; border-radius: 18px; padding: 16px; margin-bottom: 14px; position: relative; }
-    
-    /* Balance Box */
-    .balance-header { display: flex; justify-content: space-between; align-items: center; }
-    .balance-title { font-size: 11px; color: #64748b; font-weight: 700; letter-spacing: 0.5px; }
-    .history-btn { background: #1e2640; border: none; color: #94a3b8; padding: 4px 10px; border-radius: 12px; font-size: 11px; cursor: pointer; }
-    .balance-val { font-size: 38px; font-weight: 800; margin: 12px 0 2px; }
-    .balance-val span { font-size: 20px; font-weight: 700; }
-    .usd-val { color: #10b981; font-size: 12px; font-weight: 600; margin-bottom: 14px; }
-    
-    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .action-btn { background: #1e2640; border: 1px solid #2d3748; color: #fff; padding: 10px; border-radius: 10px; font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+    /* Top Profile Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
 
-    /* Daily Reward Card */
-    .reward-box { display: flex; justify-content: space-between; align-items: center; }
-    .reward-text .title { font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase; }
-    .reward-text .amount { font-size: 14px; font-weight: 700; color: #fff; margin-top: 2px; }
-    .claim-btn { background: #ffffff; color: #000000; border: none; padding: 8px 18px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; }
-    .claim-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+    .profile-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-    /* Quick Actions Grid */
-    .section-title { font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; }
-    .quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
-    .quick-item { background: #131722; border: 1px solid #1e2640; border-radius: 14px; padding: 12px 6px; text-align: center; cursor: pointer; }
-    .quick-item i { font-size: 18px; color: #3b82f6; margin-bottom: 6px; display: block; }
-    .quick-item span { font-size: 11px; color: #94a3b8; font-weight: 600; }
+    .avatar {
+      width: 46px;
+      height: 46px;
+      background: var(--silver-gradient);
+      color: #000000;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 800;
+      font-size: 18px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.5);
+    }
 
-    /* Market Overview */
-    .market-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .view-all { background: #1e2640; border: none; color: #94a3b8; padding: 4px 10px; border-radius: 8px; font-size: 11px; }
-    .crypto-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1a202c; }
-    .crypto-row:last-child { border-bottom: none; }
-    .crypto-info { display: flex; align-items: center; gap: 10px; }
-    .crypto-icon { width: 32px; height: 32px; background: #1e2640; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; }
-    .crypto-names .name { font-size: 13px; font-weight: 700; }
-    .crypto-names .symbol { font-size: 10px; color: #64748b; }
-    .crypto-price { text-align: right; }
-    .crypto-price .price { font-size: 13px; font-weight: 700; }
-    .crypto-price .change { font-size: 10px; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 2px 6px; border-radius: 4px; }
+    .user-details h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
 
-    /* Mining Center */
-    .mining-center { text-align: center; padding: 30px 10px; }
-    .cube-icon { font-size: 48px; color: #94a3b8; margin-bottom: 15px; }
-    .mine-big-btn { background: #ffffff; color: #000; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; font-size: 14px; margin-top: 20px; cursor: pointer; }
-    .mine-big-btn:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+    .user-details p {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-main);
+      font-size: 16px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+    }
+
+    .icon-btn:active { transform: scale(0.95); }
+
+    /* Glass Cards */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .card-silver {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(10, 10, 10, 0.9) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.05);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+    }
+
+    .tag-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--accent-silver);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .tag-btn:active { transform: scale(0.95); }
+
+    .balance-val {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+
+    .balance-val span {
+      font-size: 18px;
+      color: var(--accent-silver);
+      font-weight: 600;
+    }
+
+    .sub-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-top: 4px;
+      margin-bottom: 18px;
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 13px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+      border: none;
+      outline: none;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-metallic {
+      background: var(--silver-gradient);
+      color: #000000;
+      box-shadow: 0 4px 20px rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-dark {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border: 1px solid var(--card-border);
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 800;
+      margin: 20px 0 12px 0;
+      letter-spacing: 1px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+    }
+
+    /* Grid Items */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .grid-item {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .grid-item i {
+      font-size: 18px;
+      color: var(--accent-silver);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .grid-item span {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .grid-item:active { transform: scale(0.95); }
+
+    /* Market List Items */
+    .market-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .market-item:last-child { border-bottom: none; }
+
+    .coin-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .coin-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--accent-silver);
+    }
+
+    .price-badge {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--accent-silver);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+    }
 
     /* Bottom Navigation Bar */
-    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #131722; border-top: 1px solid #1e2640; display: flex; justify-content: space-around; padding: 8px 0; z-index: 100; }
-    .nav-btn { display: flex; flex-direction: column; align-items: center; color: #64748b; font-size: 10px; cursor: pointer; flex: 1; gap: 3px; }
-    .nav-btn i { font-size: 16px; }
-    .nav-btn.active { color: #ffffff; font-weight: 700; }
-    .nav-btn.active i { color: #3b82f6; }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 420px;
+      background: rgba(10, 10, 10, 0.9);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      z-index: 999;
+    }
 
-    /* Modal / Popup */
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 200; }
-    .modal-card { background: #131722; border: 1px solid #1e2640; border-radius: 16px; padding: 20px; width: 85%; max-width: 320px; text-align: center; }
-    .modal-title { font-size: 14px; font-weight: 600; margin-bottom: 15px; color: #fff; }
-    .modal-close { background: #1e2640; color: #3b82f6; border: none; width: 100%; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .nav-item {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--text-sub);
+      padding: 6px 12px;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-item i { font-size: 16px; }
+
+    .nav-item.active {
+      color: #000000;
+      background: var(--silver-gradient);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <!-- TOP USER HEADER -->
+  <div class="app-container">
+    
+    <!-- Top Bar -->
     <div class="top-bar">
-      <div class="user-profile">
-        <div class="avatar" id="userAvatar">A</div>
+      <div class="profile-info">
+        <div class="avatar" id="userAvatar"><i class="fa-solid fa-user"></i></div>
         <div class="user-details">
-          <h4 id="userName">adi_modaretor</h4>
-          <span class="verified-tag"><i class="fa-solid fa-shield-halved" style="color:#3b82f6;"></i> Verified Miner</span>
+          <h3 id="userName">User</h3>
+          <p id="userLevel"><i class="fa-solid fa-shield-halved" style="color: var(--accent-silver);"></i> Verified Miner</p>
         </div>
       </div>
-      <button class="bell-btn"><i class="fa-regular fa-bell"></i></button>
+      <div class="icon-btn" onclick="showAlert('No new notifications')"><i class="fa-regular fa-bell"></i></div>
     </div>
 
     <!-- HOME PAGE -->
     <div id="page-home" class="page active">
-      <div class="card">
-        <div class="balance-header">
-          <span class="balance-title">TOTAL BALANCE</span>
-          <!-- History Button -->
-<button class="history-btn" onclick="openHistoryModal()" style="background:#232a3e; color:#8a9ec4; border:none; padding:6px 12px; border-radius:15px; font-size:12px; cursor:pointer;">
-  History >
-</button>
-
-<!-- Separate History Modal (Pop-up Page) -->
-<div id="historyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; justify-content:center; align-items:center;">
-  <div style="background:#161c28; width:90%; max-width:400px; border-radius:16px; padding:20px; border:1px solid #2a354d; box-shadow:0 10px 25px rgba(0,0,0,0.5);">
-    
-    <!-- Modal Header -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #2a354d; padding-bottom:10px;">
-      <h3 style="color:#fff; margin:0; font-size:18px;">Transaction History</h3>
-      <span onclick="closeHistoryModal()" style="color:#aaa; font-size:24px; cursor:pointer; font-weight:bold;">&times;</span>
-    </div>
-
-    <!-- History Container -->
-    <div id="historyList" style="max-height:300px; overflow-y:auto; padding-right:5px;">
-      <!-- Firebase dynamic history will load here -->
-    </div>
-
-  </div>
-</div>
-          
-        
-        
-        <div class="balance-val"><span id="totalBalance">0</span> <span>ADI$</span></div>
-        <div class="usd-val" id="usdValue">≈ $0.00 USD</div>
+      <div class="card card-silver">
+        <div class="card-header">
+          <span class="card-label">Total Balance</span>
+          <button class="tag-btn" onclick="openHistoryModal()">History <i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="balance-val" id="totalBalance">0 <span>ADI$</span></div>
+        <div class="sub-value" id="usdValue">≈ $0.00 USD</div>
         <div class="btn-row">
-          <button class="action-btn" onclick="openModal('Exchange Feature Coming Soon')"><i class="fa-solid fa-right-left"></i> Exchange</button>
-          <button class="action-btn" onclick="switchTab('page-profile', document.getElementById('nav-profile'))"><i class="fa-solid fa-wallet"></i> Wallet</button>
+          <button class="btn btn-metallic" onclick="showAlert('Exchange Portal Opening Soon')"><i class="fa-solid fa-arrow-right-arrow-left"></i> Exchange</button>
+          <button class="btn btn-dark" onclick="connectTrustWallet()"><i class="fa-solid fa-wallet"></i> Wallet</button>
         </div>
       </div>
 
-      <div class="card reward-box">
-        <div class="reward-text">
-          <div class="title">DAILY REWARD</div>
-          <div class="amount">+1,000 ADI$ Token</div>
+      <!-- Invite Friends Button -->
+      <button class="btn btn-metallic" onclick="shareReferralLink()" style="width: 100%; margin-bottom: 16px; padding: 14px; font-size: 13px;">
+        <i class="fa-solid fa-users"></i> Invite Friends (+10 ADI)
+      </button>
+
+      <!-- Daily Reward Card -->
+      <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-sub);">DAILY REWARD</div>
+          <div style="font-size: 13px; font-weight: 800; margin-top: 2px;">+1,000 ADI$ Token</div>
         </div>
-        <button class="claim-btn" id="dailyClaimBtn" onclick="claimDailyReward()">Claim</button>
+        <button class="btn btn-metallic" id="dailyClaimBtn" style="padding: 8px 16px; flex: initial; font-size: 11px;" onclick="claimDailyReward()">Claim</button>
       </div>
 
-      <div class="section-title">QUICK ACTIONS</div>
-      <div class="quick-grid">
-        <div class="quick-item" onclick="switchTab('page-mine', document.getElementById('nav-mine'))">
-          <i class="fa-solid fa-cube"></i>
+      <div class="section-title">Quick Actions</div>
+      <div class="grid-4">
+        <div class="grid-item" onclick="switchTab('page-mine')">
+          <i class="fa-solid fa-pickaxe"></i>
           <span>Mining</span>
         </div>
-        <div class="quick-item" onclick="openModal('Boost feature available next season!')">
+        <div class="grid-item" onclick="showAlert('Speed Booster Active!')">
           <i class="fa-solid fa-bolt"></i>
           <span>Boost</span>
         </div>
-        <div class="quick-item" onclick="switchTab('page-tasks', document.getElementById('nav-tasks'))">
+        <div class="grid-item" onclick="switchTab('page-tasks')">
           <i class="fa-solid fa-list-check"></i>
           <span>Tasks</span>
         </div>
-        <div class="quick-item" onclick="switchTab('page-markets', document.getElementById('nav-markets'))">
+        <div class="grid-item" onclick="switchTab('page-markets')">
           <i class="fa-solid fa-chart-line"></i>
           <span>Markets</span>
         </div>
       </div>
-<!-- Referral / Invite Button -->
-<button class="invite-btn" onclick="shareReferralLink()" style="background:#0088cc; color:#fff; border:none; padding:10px 18px; border-radius:10px; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:8px;">
-  👥 Invite Friends (+10 ADI)
-</button>
-        
+
       <div class="card">
-        <div class="market-header">
-          <span class="balance-title">MARKET OVERVIEW</span>
-          <button class="view-all" onclick="switchTab('page-markets', document.getElementById('nav-markets'))">View All</button>
+        <div class="card-header">
+          <span class="card-label">Market Overview</span>
+          <button class="tag-btn" onclick="switchTab('page-markets')">View All</button>
         </div>
-        <div class="crypto-row">
-          <div class="crypto-info">
-            <div class="crypto-icon">ADI</div>
-            <div class="crypto-names">
-              <div class="name">ADI$ Token</div>
-              <div class="symbol">Native Token</div>
+        
+        <div class="market-item">
+          <div class="coin-info">
+            <div class="coin-icon">ADI$</div>
+            <div>
+              <strong style="font-size: 13px; display: block;">ADI$ Token</strong>
+              <span style="font-size: 10px; color: var(--text-sub);">Native Token</span>
             </div>
           </div>
-          <div class="crypto-price">
-            <div class="price">$0.000100</div>
-            <span class="change">+0.00%</span>
+          <div style="text-align: right;">
+            <div style="font-size: 13px; font-weight: 700;">$0.000100</div>
+            <span class="price-badge">+0.00%</span>
+          </div>
+        </div>
+
+        <div class="market-item">
+          <div class="coin-info">
+            <div class="coin-icon"><i class="fa-brands fa-bitcoin"></i></div>
+            <div>
+              <strong style="font-size: 13px; display: block;">Bitcoin</strong>
+              <span style="font-size: 10px; color: var(--text-sub);">BTC</span>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 13px; font-weight: 700;">$76,863.98</div>
+            <span class="price-badge">+1.56%</span>
           </div>
         </div>
       </div>
@@ -198,38 +459,29 @@
 
     <!-- MINE PAGE -->
     <div id="page-mine" class="page">
-      <div class="card mining-center">
-        <i class="fa-solid fa-cube cube-icon"></i>
-        <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 6px;">Mining Protocol</h3>
-        <p style="font-size: 12px; color: #64748b;">Tap below to initialize block mining and claim tokens.</p>
-        <button class="mine-big-btn" id="mineBtn" onclick="startMining()">► Start Mining (+500 ADI$)</button>
+      <div class="card card-silver" style="text-align: center; padding: 35px 20px;">
+        <i class="fa-solid fa-cube" style="font-size: 40px; color: var(--accent-silver); margin-bottom: 15px;"></i>
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Mining Protocol</h2>
+        <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 24px;">Tap below to initialize block mining and claim tokens.</p>
+        <button class="btn btn-metallic" id="mineBtn" style="width: 100%; padding: 16px; font-size: 13px;" onclick="startMining()"><i class="fa-solid fa-play"></i> Start Mining (+500 ADI$)</button>
       </div>
     </div>
 
     <!-- MARKETS PAGE -->
     <div id="page-markets" class="page">
       <div class="card">
-        <div class="section-title" style="margin-bottom: 14px;">LIVE MARKET METRICS</div>
-        <div class="crypto-row">
-          <div class="crypto-info">
-            <div class="crypto-icon">ADI</div>
-            <div class="crypto-names"><div class="name">ADI$ Token</div></div>
-          </div>
-          <div class="crypto-price"><div class="price">$0.000100</div></div>
+        <div class="section-title" style="margin-top: 0;">Live Market Metrics</div>
+        <div class="market-item">
+          <div class="coin-info"><div class="coin-icon">ADI$</div><div><strong>ADI$ Token</strong></div></div>
+          <div><strong>$0.000100</strong></div>
         </div>
-        <div class="crypto-row">
-          <div class="crypto-info">
-            <div class="crypto-icon"><i class="fa-brands fa-bitcoin"></i></div>
-            <div class="crypto-names"><div class="name">Bitcoin</div></div>
-          </div>
-          <div class="crypto-price"><div class="price">$76,863.98</div></div>
+        <div class="market-item">
+          <div class="coin-info"><div class="coin-icon"><i class="fa-brands fa-bitcoin"></i></div><div><strong>Bitcoin</strong></div></div>
+          <div><strong>$76,863.98</strong></div>
         </div>
-        <div class="crypto-row">
-          <div class="crypto-info">
-            <div class="crypto-icon"><i class="fa-brands fa-ethereum"></i></div>
-            <div class="crypto-names"><div class="name">Ethereum</div></div>
-          </div>
-          <div class="crypto-price"><div class="price">$3,420.50</div></div>
+        <div class="market-item">
+          <div class="coin-info"><div class="coin-icon"><i class="fa-brands fa-ethereum"></i></div><div><strong>Ethereum</strong></div></div>
+          <div><strong>$3,420.50</strong></div>
         </div>
       </div>
     </div>
@@ -237,388 +489,370 @@
     <!-- TASKS PAGE -->
     <div id="page-tasks" class="page">
       <div class="card">
-        <div class="section-title" style="margin-bottom: 14px;">AVAILABLE MISSIONS</div>
-        <div class="crypto-row">
+        <div class="section-title" style="margin-top: 0;">Available Missions</div>
+        
+        <!-- Normal Task 1 -->
+        <div class="market-item">
           <div>
-            <div style="font-size: 13px; font-weight: 700;">Join Telegram Channel</div>
-            <div style="font-size: 11px; color: #10b981;">+2,000 ADI$</div>
+            <strong style="font-size: 13px; display: block;">Join Telegram Channel</strong>
+            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+2,000 ADI$</span>
           </div>
-          <button class="claim-btn" id="task1Btn" onclick="handleTask('task1', 2000, 'https://t.me/adiofficialannusment')">Start</button>
+          <button class="btn btn-metallic" id="task1Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task1', 2000, 'Telegram Channel')">Claim</button>
         </div>
-        <div class="crypto-row">
+
+        <!-- Normal Task 2 -->
+        <div class="market-item">
           <div>
-            <div style="font-size: 13px; font-weight: 700;">Subscribe YouTube Channel</div>
-            <div style="font-size: 11px; color: #10b981;">+3,000 ADI$</div>
+            <strong style="font-size: 13px; display: block;">Subscribe YouTube Channel</strong>
+            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+3,000 ADI$</span>
           </div>
-          <button class="claim-btn" id="task2Btn" onclick="handleTask('task2', 3000, 'https://youtube.com')">Start</button>
+          <button class="btn btn-metallic" id="task2Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task2', 3000, 'YouTube Subscribe')">Claim</button>
         </div>
+
+        <!-- Video Secret Code Task -->
+        <div class="market-item">
+          <div>
+            <strong style="font-size: 13px; display: block;">Watch Video & Enter Code</strong>
+            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+5,000 ADI$</span>
+          </div>
+          <button class="btn btn-metallic" id="task3Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task3', 5000, 'Watch Video Code', 'ADI2026')">Verify & Claim</button>
+        </div>
+
       </div>
     </div>
 
     <!-- PROFILE PAGE -->
     <div id="page-profile" class="page">
-      <div class="card">
-        <div class="section-title" style="margin-bottom: 14px;">ACCOUNT VERIFICATION</div>
-        <div style="font-size: 12px; margin-bottom: 8px; color: #94a3b8;">Username: <span id="profUser" style="color: #fff; font-weight: 700;">...</span></div>
-        <div style="font-size: 12px; margin-bottom: 8px; color: #94a3b8;">Telegram ID: <span id="profId" style="color: #fff; font-weight: 700;">...</span></div>
-        <div style="font-size: 12px; margin-bottom: 16px; color: #94a3b8;">Current Balance: <span id="profBalance" style="color: #10b981; font-weight: 700;">0 ADI$</span></div>
-        <button class="action-btn" style="width: 100%; border-radius: 12px;" onclick="connectOrSaveWallet()"><i class="fa-solid fa-link"></i> Connect TON Wallet</button>
+      <div class="card card-silver">
+        <div class="section-title" style="margin-top: 0;">Account Verification</div>
+        <div style="font-size: 13px; line-height: 2;">
+          <p><strong>Username:</strong> <span id="profUser" style="color: var(--text-sub);">Loading...</span></p>
+          <p><strong>Telegram ID:</strong> <span id="profId" style="color: var(--text-sub);">...</span></p>
+          <p><strong>Current Balance:</strong> <span id="profBalance" style="color: var(--accent-silver); font-weight: 800;">0 ADI$</span></p>
+        </div>
+        <button class="btn btn-metallic" style="width: 100%; margin-top: 20px;" onclick="connectTrustWallet()"><i class="fa-solid fa-link"></i> Connect Trust Wallet</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- History Modal Window -->
+  <div id="historyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#141414; width:90%; max-width:400px; border-radius:16px; padding:20px; border:1px solid rgba(255,255,255,0.2); box-shadow:0 10px 25px rgba(0,0,0,0.8);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+        <h3 style="color:#fff; margin:0; font-size:18px;">Transaction History</h3>
+        <span onclick="closeHistoryModal()" style="color:#aaa; font-size:24px; cursor:pointer; font-weight:bold;">&times;</span>
+      </div>
+      <div id="historyList" style="max-height:300px; overflow-y:auto; padding-right:5px;">
+        <!-- Dynamic Firebase History -->
       </div>
     </div>
   </div>
-  <div id="historyList">
-  <!-- ফায়ারবেস থেকে হিস্ট্রি এখানে অটোমেটিক লোড হবে -->
-  </div>
-  
 
-  <!-- BOTTOM NAVIGATION -->
+  <!-- Bottom Navigation -->
   <div class="bottom-nav">
-    <div class="nav-btn active" onclick="switchTab('page-home', this)"><i class="fa-solid fa-house"></i><span>Home</span></div>
-    <div class="nav-btn" id="nav-mine" onclick="switchTab('page-mine', this)"><i class="fa-solid fa-cube"></i><span>Mine</span></div>
-    <div class="nav-btn" id="nav-markets" onclick="switchTab('page-markets', this)"><i class="fa-solid fa-chart-simple"></i><span>Markets</span></div>
-    <div class="nav-btn" id="nav-tasks" onclick="switchTab('page-tasks', this)"><i class="fa-solid fa-list-check"></i><span>Tasks</span></div>
-    <div class="nav-btn" id="nav-profile" onclick="switchTab('page-profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
+    <div class="nav-item active" onclick="switchTab('page-home', this)"><i class="fa-solid fa-house"></i><span>Home</span></div>
+    <div class="nav-item" onclick="switchTab('page-mine', this)"><i class="fa-solid fa-pickaxe"></i><span>Mine</span></div>
+    <div class="nav-item" onclick="switchTab('page-markets', this)"><i class="fa-solid fa-chart-simple"></i><span>Markets</span></div>
+    <div class="nav-item" onclick="switchTab('page-tasks', this)"><i class="fa-solid fa-list-check"></i><span>Tasks</span></div>
+    <div class="nav-item" onclick="switchTab('page-profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
   </div>
 
-  <!-- POPUP MODAL -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal-card">
-      <div class="modal-title" id="modalText">Message</div>
-      <button class="modal-close" onclick="closeModal()">Close</button>
-    </div>
-  </div>
-
-  <!-- Firebase SDK Libraries -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-<script>
-  // Firebase Config & Initialization
-  const firebaseConfig = {
-    apiKey: "AIzaSyAn4TLzUTqGvDz9Os-rBzKyVVGhP6Cj1D0",
-    authDomain: "adi-mining-bot-6e8f1.firebaseapp.com",
-    databaseURL: "https://adi-mining-bot-6e8f1-default-rtdb.firebaseio.com",
-    projectId: "adi-mining-bot-6e8f1",
-    storageBucket: "adi-mining-bot-6e8f1.firebasestorage.app",
-    messagingSenderId: "74884774159",
-    appId: "1:74884774159:web:312e04011957a2a078667a",
-    measurementId: "G-G55XM74MM4"
-  };
-
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
-</script>
-  
   <script>
-    // TELEGRAM USER DATA
+    // Firebase Configuration for ADI Mining Bot
+    const firebaseConfig = {
+      databaseURL: "https://adi-mining-bot-6e8f1-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Telegram WebApp Integration
     const tg = window.Telegram ? window.Telegram.WebApp : null;
-    let userId = "8564284672";
-    let userName = "adi_modaretor";
+    let userId = "guest_user";
+    let userName = "Airdrop User";
     let userBalance = 0;
-    let tasksData = {};
-    let lastMineDate = "";
     let lastClaimDate = "";
+    let lastMineDate = "";
+    const todayDate = new Date().toISOString().slice(0, 10);
 
     if (tg) {
       tg.ready();
       tg.expand();
       if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
         userId = tg.initDataUnsafe.user.id.toString();
-        userName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "adi_modaretor";
+        userName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "User";
       }
     }
 
-    const todayDate = new Date().toISOString().slice(0, 10);
-
-    document.getElementById('userName').innerText = userName;
-    document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
-    document.getElementById('profUser').innerText = userName;
-    document.getElementById('profId').innerText = userId;
-
-    // REALTIME DATABASE SYNC
+    // Firebase Data Listener
     const userRef = database.ref('users/' + userId);
     userRef.on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
         userBalance = Number(data.balance) || 0;
-        tasksData = data.tasks || {};
-        lastMineDate = data.lastMineDate || "";
         lastClaimDate = data.lastClaimDate || "";
+        lastMineDate = data.lastMineDate || "";
       } else {
-        userRef.set({ username: userName, balance: 0, wallet: "", tasks: {} });
-        userBalance = 0;
+        userRef.set({ username: userName, balance: 1000, lastClaimDate: "", lastMineDate: "" });
+        userBalance = 1000;
       }
       updateUI();
+      checkReferralBonus();
     });
-  /  // COMPLETE TASK WITH HISTORY TRACKING (ENGLISH ALERT)
-  function claimTask(taskId, rewardAmount, taskTitle, requiredCode = "") {
-    database.ref('users/' + userId + '/completedTasks/' + taskId).once('value').then((snapshot) => {
-      if (snapshot.exists()) {
-        alert("You have already completed this task!");
-        return;
-      }
 
-      if (requiredCode !== "") {
-        let userCode = prompt("Enter the Secret Code from the video:");
-        if (!userCode || userCode.trim().toUpperCase() !== requiredCode.toUpperCase()) {
-          alert("Invalid code! Please try again with the correct code.");
-          return;
+    function updateUI() {
+      if (document.getElementById('userName')) document.getElementById('userName').innerText = userName;
+      if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
+      if (document.getElementById('profUser')) document.getElementById('profUser').innerText = userName;
+      if (document.getElementById('profId')) document.getElementById('profId').innerText = userId;
+
+      document.getElementById('totalBalance').innerHTML = userBalance.toLocaleString() + ' <span>ADI$</span>';
+      document.getElementById('usdValue').innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
+      document.getElementById('profBalance').innerText = userBalance.toLocaleString() + ' ADI$';
+
+      // Update Daily Claim Button
+      const claimBtn = document.getElementById('dailyClaimBtn');
+      if (claimBtn) {
+        if (lastClaimDate === todayDate) {
+          claimBtn.innerText = "Claimed";
+          claimBtn.disabled = true;
+          claimBtn.style.opacity = "0.4";
+        } else {
+          claimBtn.innerText = "Claim";
+          claimBtn.disabled = false;
+          claimBtn.style.opacity = "1";
         }
       }
 
-      userBalance += Number(rewardAmount);
-      
-      const historyId = 'hist_' + Date.now();
-      const currentDate = new Date().toLocaleString();
+      // Update Mining Button
+      const mineBtn = document.getElementById('mineBtn');
+      if (mineBtn) {
+        if (lastMineDate === todayDate) {
+          mineBtn.innerText = "Mined Today";
+          mineBtn.disabled = true;
+          mineBtn.style.opacity = "0.4";
+        } else {
+          mineBtn.innerText = "⛏ Start Mining (+500 ADI$)";
+          mineBtn.disabled = false;
+          mineBtn.style.opacity = "1";
+        }
+      }
 
-      let updates = {};
-      updates['users/' + userId + '/balance'] = userBalance;
-      updates['users/' + userId + '/completedTasks/' + taskId] = true;
-      updates['users/' + userId + '/history/' + historyId] = {
-        title: taskTitle,
-        amount: "+" + rewardAmount + " ADI",
-        date: currentDate,
-        type: "Task Reward"
-      };
+      // Update Task Button Status
+      updateTaskButtonStatus('task1', 'task1Btn');
+      updateTaskButtonStatus('task2', 'task2Btn');
+      updateTaskButtonStatus('task3', 'task3Btn');
+    }
 
-      database.ref().update(updates).then(() => {
-        updateUI();
-        alert("Congratulations! " + rewardAmount + " ADI has been added to your balance.");
-      }).catch((error) => {
-        alert("Database error: " + error.message);
+    function updateTaskButtonStatus(taskId, btnId) {
+      database.ref('users/' + userId + '/completedTasks/' + taskId).once('value').then((snapshot) => {
+        const btn = document.getElementById(btnId);
+        if (btn && snapshot.exists()) {
+          btn.innerText = "Done";
+          btn.disabled = true;
+          btn.style.opacity = "0.4";
+        }
       });
-    });
-  }
-      // Open History Modal & Load Data
-  function openHistoryModal() {
-    document.getElementById('historyModal').style.display = 'flex';
-    loadHistory();
-  }
-
-  // Close History Modal
-  function closeHistoryModal() {
-    document.getElementById('historyModal').style.display = 'none';
-  }
-
-  // Fetch History from Firebase
-  function loadHistory() {
-    const historyListElement = document.getElementById('historyList');
-    if (!historyListElement) return;
-
-    historyListElement.innerHTML = "<p style='color:#888; text-align:center;'>Loading...</p>";
-
-    database.ref('users/' + userId + '/history').on('value', (snapshot) => {
-      const historyData = snapshot.val();
-      historyListElement.innerHTML = "";
-
-      if (historyData) {
-        Object.keys(historyData).reverse().forEach((key) => {
-          const item = historyData[key];
-          const historyCard = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:12px; background:#1f2838; border-radius:10px; border:1px solid #2d3a50;">
-              <div>
-                <div style="font-weight:bold; color:#fff; font-size:14px;">${item.title}</div>
-                <div style="font-size:11px; color:#7e8b9b; margin-top:3px;">${item.date}</div>
-              </div>
-              <div style="color:#4CAF50; font-weight:bold; font-size:14px;">${item.amount}</div>
-            </div>
-          `;
-          historyListElement.innerHTML += historyCard;
-        });
-      } else {
-        historyListElement.innerHTML = "<p style='color:#888; text-align:center;'>No history found.</p>";
-      }
-    });
-    }
-          // Check & Reward Referrer on First Login
-  function checkReferralBonus() {
-    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
-      const referrerId = tg.initDataUnsafe.start_param;
-
-      if (referrerId && referrerId !== userId) {
-        database.ref('users/' + userId + '/referredBy').once('value').then((snapshot) => {
-          if (!snapshot.exists()) {
-            // Give 10 ADI to the Referrer
-            database.ref('users/' + referrerId + '/balance').transaction((currentBalance) => {
-              return (currentBalance || 0) + 10;
-            });
-
-            // Add History Record for Referrer
-            const histId = 'hist_' + Date.now();
-            database.ref('users/' + referrerId + '/history/' + histId).set({
-              title: "Referral Bonus",
-              amount: "+10 ADI",
-              date: new Date().toLocaleString(),
-              type: "Referral Reward"
-            });
-
-            // Save referredBy status for new user
-            database.ref('users/' + userId + '/referredBy').set(referrerId);
-          }
-        });
-      }
-    }
-    }
-      
-  // FETCH AND DISPLAY HISTORY IN UI
-  function loadHistory() {
-    const historyListElement = document.getElementById('historyList');
-    if (!historyListElement) return;
-
-    database.ref('users/' + userId + '/history').on('value', (snapshot) => {
-      const historyData = snapshot.val();
-      historyListElement.innerHTML = "";
-
-      if (historyData) {
-        Object.keys(historyData).reverse().forEach((key) => {
-          const item = historyData[key];
-          const historyCard = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px; padding:10px; background:#1e1e1e; border-radius:8px;">
-              <div>
-                <div style="font-weight:bold; color:#fff;">${item.title}</div>
-                <div style="font-size:11px; color:#aaa;">${item.date}</div>
-              </div>
-              <div style="color:#4CAF50; font-weight:bold;">${item.amount}</div>
-            </div>
-          `;
-          historyListElement.innerHTML += historyCard;
-        });
-      } else {
-        historyListElement.innerHTML = "<p style='color:#888;'>No transaction history found.</p>";
-      }
-    });
-        }
-                  
-      function updateUI() {
-    if (document.getElementById('userName')) document.getElementById('userName').innerText = userName;
-    if (document.getElementById('userAvatar')) document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
-    if (document.getElementById('profUser')) document.getElementById('profUser').innerText = userName;
-    if (document.getElementById('profId')) document.getElementById('profId').innerText = userId;
-    if (document.getElementById('totalBalance')) document.getElementById('totalBalance').innerText = userBalance.toLocaleString() + " ADI";
-    if (document.getElementById('profBalance')) document.getElementById('profBalance').innerText = userBalance.toLocaleString() + " ADI";
-    if (document.getElementById('usdValue')) document.getElementById('usdValue').innerText = "= $" + (userBalance * 0.0001).toFixed(2);
-
-    // Update Daily Claim Button
-    const claimBtn = document.getElementById('dailyClaimBtn');
-    if (claimBtn) {
-      if (lastClaimDate === todayDate) {
-        claimBtn.innerText = "Claimed";
-        claimBtn.disabled = true;
-      } else {
-        claimBtn.innerText = "Claim";
-        claimBtn.disabled = false;
-      }
     }
 
-    // Update Mining Button
-    const mineBtn = document.getElementById('mineBtn');
-    if (mineBtn) {
-      if (lastMineDate === todayDate) {
-        mineBtn.innerText = "Mined Today";
-        mineBtn.disabled = true;
-      } else {
-        mineBtn.innerText = "⛏ Start Mining (+500 ADI$)";
-        mineBtn.disabled = false;
-      }
-    }
-
-    // Update Tasks Buttons
-    if (typeof updateTaskButton === "function") {
-      updateTaskButton('task1', 'task1Btn');
-      updateTaskButton('task2', 'task2Btn');
-    }
-  }
-
-  // Open & Close History Modal Functions
-  function openHistoryModal() {
-    const modal = document.getElementById('historyModal');
-    if (modal) {
-      modal.style.display = 'flex';
-      loadHistory();
-    }
-  }
-
-  function closeHistoryModal() {
-    const modal = document.getElementById('historyModal');
-    if (modal) {
-      modal.style.display = 'none';
-    }
-  }
-
-
-    function updateTaskButton(taskId, btnId) {
-      const btn = document.getElementById(btnId);
-      const taskState = tasksData[taskId] ? tasksData[taskId].status : 'none';
-
-      if (taskState === 'completed') {
-        btn.innerText = "Done";
-        btn.disabled = true;
-      } else if (taskState === 'started') {
-        btn.innerText = "Claim";
-        btn.disabled = false;
-      } else {
-        btn.innerText = "Start";
-        btn.disabled = false;
-      }
-    }
-
-    // TAB SWITCHING
     function switchTab(pageId, navElement) {
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById(pageId).classList.add('active');
 
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      if (navElement) navElement.classList.add('active');
+      if (navElement) {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        navElement.classList.add('active');
+      }
     }
 
-    // ACTIONS & LOGIC
+    // Daily Claim Reward
     function claimDailyReward() {
-      if (lastClaimDate === todayDate) return;
+      if (lastClaimDate === todayDate) {
+        showAlert("You have already claimed today's reward!");
+        return;
+      }
+
       userBalance += 1000;
-      userRef.update({ balance: userBalance, lastClaimDate: todayDate });
-      openModal("Success! Claimed 1,000 ADI$");
+      const historyId = 'hist_' + Date.now();
+      
+      let updates = {};
+      updates['users/' + userId + '/balance'] = userBalance;
+      updates['users/' + userId + '/lastClaimDate'] = todayDate;
+      updates['users/' + userId + '/history/' + historyId] = {
+        title: "Daily Reward",
+        amount: "+1000 ADI",
+        date: new Date().toLocaleString(),
+        type: "Daily Reward"
+      };
+
+      database.ref().update(updates).then(() => {
+        showAlert("Congratulations! Claimed 1,000 ADI$");
+      });
     }
 
+    // Mining Function
     function startMining() {
-      if (lastMineDate === todayDate) return;
+      if (lastMineDate === todayDate) {
+        showAlert("Mining limit reached for today!");
+        return;
+      }
+
       userBalance += 500;
-      userRef.update({ balance: userBalance, lastMineDate: todayDate });
-      openModal("Mined +500 ADI$ Tokens!");
+      const historyId = 'hist_' + Date.now();
+
+      let updates = {};
+      updates['users/' + userId + '/balance'] = userBalance;
+      updates['users/' + userId + '/lastMineDate'] = todayDate;
+      updates['users/' + userId + '/history/' + historyId] = {
+        title: "Block Mining",
+        amount: "+500 ADI",
+        date: new Date().toLocaleString(),
+        type: "Mining Reward"
+      };
+
+      database.ref().update(updates).then(() => {
+        showAlert("Mined +500 ADI$ Tokens!");
+      });
     }
 
-    function handleTask(taskId, reward, link) {
-      const currentState = tasksData[taskId] ? tasksData[taskId].status : 'none';
+    // Task Completion with Code & Normal
+    function claimTask(taskId, rewardAmount, taskTitle, requiredCode = "") {
+      database.ref('users/' + userId + '/completedTasks/' + taskId).once('value').then((snapshot) => {
+        if (snapshot.exists()) {
+          showAlert("You have already completed this task!");
+          return;
+        }
 
-      if (currentState === 'none') {
-        window.open(link, '_blank');
-        database.ref('users/' + userId + '/tasks/' + taskId).set({ status: 'started' });
-        openModal("Task Started! Return after joining to claim your reward.");
-      } else if (currentState === 'started') {
-        userBalance += reward;
-        database.ref('users/' + userId + '/tasks/' + taskId).set({ status: 'completed' });
-        userRef.update({ balance: userBalance });
-        openModal("Task Completed! Received +" + reward + " ADI$");
+        if (requiredCode !== "") {
+          let userCode = prompt("Enter the Secret Code from the video:");
+          if (!userCode || userCode.trim().toUpperCase() !== requiredCode.toUpperCase()) {
+            showAlert("Invalid code! Please try again with the correct code.");
+            return;
+          }
+        }
+
+        userBalance += Number(rewardAmount);
+        const historyId = 'hist_' + Date.now();
+
+        let updates = {};
+        updates['users/' + userId + '/balance'] = userBalance;
+        updates['users/' + userId + '/completedTasks/' + taskId] = true;
+        updates['users/' + userId + '/history/' + historyId] = {
+          title: taskTitle,
+          amount: "+" + rewardAmount + " ADI",
+          date: new Date().toLocaleString(),
+          type: "Task Reward"
+        };
+
+        database.ref().update(updates).then(() => {
+          showAlert("Congratulations! " + rewardAmount + " ADI has been added to your balance.");
+        });
+      });
+    }
+
+    // Referral System Share (+10 ADI)
+    function shareReferralLink() {
+      const botUsername = "ADI_Mining_Bot";
+      const refLink = `https://t.me/${botUsername}?start=${userId}`;
+      
+      if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent('Join ADI Airdrop and earn 10 ADI bonus!')}`;
+        window.Telegram.WebApp.openTelegramLink(shareUrl);
+      } else {
+        navigator.clipboard.writeText(refLink).then(() => {
+          showAlert("Referral link copied to clipboard!\n" + refLink);
+        }).catch(() => {
+          prompt("Copy your referral link:", refLink);
+        });
       }
     }
 
-    function connectOrSaveWallet() {
-      const w = prompt("Enter your TON / BEP20 Wallet Address:");
-      if (w && w.length > 5) {
-        userRef.update({ wallet: w });
-        openModal("TON Wallet Saved Successfully!");
+    // Referral Check Bonus
+    function checkReferralBonus() {
+      if (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+        const referrerId = tg.initDataUnsafe.start_param;
+
+        if (referrerId && referrerId !== userId) {
+          database.ref('users/' + userId + '/referredBy').once('value').then((snapshot) => {
+            if (!snapshot.exists()) {
+              database.ref('users/' + referrerId + '/balance').transaction((currentBalance) => {
+                return (currentBalance || 0) + 10;
+              });
+
+              const histId = 'hist_' + Date.now();
+              database.ref('users/' + referrerId + '/history/' + histId).set({
+                title: "Referral Bonus",
+                amount: "+10 ADI",
+                date: new Date().toLocaleString(),
+                type: "Referral Reward"
+              });
+
+              database.ref('users/' + userId + '/referredBy').set(referrerId);
+            }
+          });
+        }
       }
     }
 
-    function openModal(msg) {
-      document.getElementById('modalText').innerText = msg;
-      document.getElementById('modalOverlay').style.display = 'flex';
+    // History Modal Open/Close & Fetch
+    function openHistoryModal() {
+      document.getElementById('historyModal').style.display = 'flex';
+      loadHistory();
     }
 
-    function closeModal() {
-      document.getElementById('modalOverlay').style.display = 'none';
+    function closeHistoryModal() {
+      document.getElementById('historyModal').style.display = 'none';
+    }
+
+    function loadHistory() {
+      const historyListElement = document.getElementById('historyList');
+      if (!historyListElement) return;
+
+      historyListElement.innerHTML = "<p style='color:#888; text-align:center;'>Loading...</p>";
+
+      database.ref('users/' + userId + '/history').on('value', (snapshot) => {
+        const historyData = snapshot.val();
+        historyListElement.innerHTML = "";
+
+        if (historyData) {
+          Object.keys(historyData).reverse().forEach((key) => {
+            const item = historyData[key];
+            const historyCard = `
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:12px; background:#1b1b1b; border-radius:10px; border:1px solid rgba(255,255,255,0.1);">
+                <div>
+                  <div style="font-weight:bold; color:#fff; font-size:14px;">${item.title}</div>
+                  <div style="font-size:11px; color:#888; margin-top:3px;">${item.date}</div>
+                </div>
+                <div style="color:#e2e8f0; font-weight:bold; font-size:14px;">${item.amount}</div>
+              </div>
+            `;
+            historyListElement.innerHTML += historyCard;
+          });
+        } else {
+          historyListElement.innerHTML = "<p style='color:#888; text-align:center;'>No transaction history found.</p>";
+        }
+      });
+    }
+
+    // Connect Trust Wallet Deep Link
+    function connectTrustWallet() {
+      const dappUrl = encodeURIComponent(window.location.href);
+      const trustWalletDeepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${dappUrl}`;
+      
+      if (tg && tg.openLink) {
+        tg.openLink(trustWalletDeepLink);
+      } else {
+        window.location.href = trustWalletDeepLink;
+      }
+    }
+
+    function showAlert(msg) {
+      if (tg && tg.showAlert) {
+        tg.showAlert(msg);
+      } else {
+        alert(msg);
+      }
     }
   </script>
 </body>
-                                                                                           </html>
-          
+</html>
