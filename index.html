@@ -458,127 +458,225 @@
     <div class="nav-item" onclick="switchTab('page-tasks', this)"><i class="fa-solid fa-list-check"></i><span>Tasks</span></div>
     <div class="nav-item" onclick="switchTab('page-profile', this)"><i class="fa-solid fa-user"></i><span>Profile</span></div>
   </div>
+    <script>
+  // ১. ফায়ারবেস কনফিগারেশন
+  const firebaseConfig = {
+    databaseURL: "https://visit-780ae-default-rtdb.asia-southeast1.firebasedatabase.app"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const database = firebase.database();
 
-  <script>
-    const firebaseConfig = {
-      databaseURL: "https://ahs-shop-default-rtdb.firebaseio.com"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+  // ২. টেলিগ্রাম ইউজার ডাটা ইনিশিয়ালাইজেশন
+  const tg = window.Telegram ? window.Telegram.WebApp : null;
+  let userId = "guest_user";
+  let userName = "Airdrop User";
+  let userBalance = 0;
+  let tasksData = {};
+  let lastMineDate = "";
+  let lastClaimDate = "";
+  let userIP = "";
+  let isBanned = false;
 
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
-    let userId = "guest_user";
-    let userName = "Airdrop User";
-    let userBalance = 0;
-    let tasksData = {};
-
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        userId = tg.initDataUnsafe.user.id.toString();
-        userName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "User";
-      }
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+      userId = tg.initDataUnsafe.user.id.toString();
+      userName = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || "User";
     }
+  }
 
-    document.getElementById('userName').innerText = userName;
-    document.getElementById('userAvatar').innerText = userName[0].toUpperCase();
-    document.getElementById('profUser').innerText = userName;
-    document.getElementById('profId').innerText = userId;
+  const todayDate = new Date().toISOString().slice(0, 10);
 
-    const userRef = database.ref('users/' + userId);
-    userRef.on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        userBalance = Number(data.balance) || 0;
-        tasksData = data.tasks || {};
-        if (data.wallet) {
-          document.getElementById('walletInput').value = data.wallet;
+  // ৩. প্রোফাইল ডাটা সেট করা
+  const nameElem = document.getElementById('userName');
+  if (nameElem) nameElem.innerText = userName;
+  
+  const avatarElem = document.getElementById('userAvatar');
+  if (avatarElem) avatarElem.innerText = userName[0].toUpperCase();
+  
+  const profUserElem = document.getElementById('profUser');
+  if (profUserElem) profUserElem.innerText = userName;
+  
+  const profIdElem = document.getElementById('profId');
+  if (profIdElem) profIdElem.innerText = userId;
+
+  // ৪. IP Anti-Cheat System
+  fetch('https://api.ipify.org?format=json')
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.ip) {
+        userIP = data.ip.replace(/\./g, '_');
+        checkIpBanStatus(userIP);
+      }
+    })
+    .catch(e => console.log("IP fetch error", e));
+
+  function checkIpBanStatus(ip) {
+    const ipRef = database.ref('ip_logs/' + ip);
+    ipRef.once('value').then(snapshot => {
+      const ipData = snapshot.val();
+      if (ipData) {
+        if (ipData.primaryUserId && ipData.primaryUserId !== userId) {
+          executeBan("Multiple accounts detected on the same IP address.");
         }
       } else {
-        userRef.set({ username: userName, balance: 1000, wallet: "", tasks: {} });
-        userBalance = 1000;
+        ipRef.set({ primaryUserId: userId, createdAt: Date.now() });
       }
-      updateUI();
-      updateTasksUI();
     });
+  }
 
-    function updateUI() {
-      document.getElementById('totalBalance').innerHTML = userBalance.toLocaleString() + ' <span>ADI$</span>';
-      document.getElementById('usdValue').innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
-      document.getElementById('profBalance').innerText = userBalance.toLocaleString() + ' ADI$';
-    }
+  function executeBan(reason) {
+    isBanned = true;
+    database.ref('users/' + userId).update({ banned: true, banReason: reason });
+    document.body.innerHTML = `
+      <div style="text-align:center; padding: 50px 20px; color: #ff4d4d; font-family: sans-serif;">
+        <h2>🚫 ACCOUNT BANNED</h2>
+        <p style="color: #ccc;">${reason}</p>
+      </div>
+    `;
+  }
 
-    function switchTab(pageId, navElement) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(pageId).classList.add('active');
-
-      if (navElement) {
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        navElement.classList.add('active');
+  // ৫. ফায়ারবেস থেকে ডাটা সিঙ্ক
+  const userRef = database.ref('users/' + userId);
+  userRef.on('value', (snapshot) => {
+    if (isBanned) return;
+    const data = snapshot.val();
+    if (data) {
+      if (data.banned) {
+        executeBan(data.banReason || "Suspicious activity detected.");
+        return;
       }
+      userBalance = Number(data.balance) || 0;
+      tasksData = data.tasks || {};
+      lastMineDate = data.lastMineDate || "";
+      lastClaimDate = data.lastClaimDate || "";
+      
+      const walletInput = document.getElementById('walletInput');
+      if (data.wallet && walletInput) {
+        walletInput.value = data.wallet;
+      }
+    } else {
+      userRef.set({ username: userName, balance: 1000, wallet: "", tasks: {} });
+      userBalance = 1000;
     }
+    updateUI();
+    updateTasksUI();
+  });
 
-    function claimDailyReward() {
-      const newBalance = userBalance + 1000;
-      userRef.update({ balance: newBalance });
-      showAlert('Success! Claimed 1,000 ADI$');
+  // ৬. UI ব্যালেন্স আপডেট
+  function updateUI() {
+    const totalBal = document.getElementById('totalBalance');
+    if (totalBal) totalBal.innerHTML = userBalance.toLocaleString() + ' <span>ADI$</span>';
+    
+    const userBal = document.getElementById('user-balance');
+    if (userBal) userBal.innerText = userBalance.toLocaleString();
+
+    const usdVal = document.getElementById('usdValue');
+    if (usdVal) usdVal.innerText = '≈ $' + (userBalance * 0.0001).toFixed(2) + ' USD';
+
+    const profBal = document.getElementById('profBalance');
+    if (profBal) profBal.innerText = userBalance.toLocaleString() + ' ADI$';
+  }
+
+  // ৭. পেজ নেভিগেশন
+  function switchTab(pageId, navElement) {
+    if (isBanned) return;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) targetPage.classList.add('active');
+
+    if (navElement) {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      navElement.classList.add('active');
     }
+  }
 
-    function startMining() {
-      const newBalance = userBalance + 500;
-      userRef.update({ balance: newBalance });
-      showAlert('Mined +500 ADI$ Tokens!');
+  // ৮. Daily Claim (১,০০০ $ADI)
+  function claimDailyReward() {
+    if (isBanned) return;
+    if (lastClaimDate === todayDate) {
+      showAlert("You have already claimed today's reward! Come back tomorrow.");
+      return;
     }
+    const newBalance = userBalance + 1000;
+    userRef.update({ 
+      balance: newBalance,
+      lastClaimDate: todayDate,
+      ipAddress: userIP || "unknown"
+    });
+    showAlert('Success! Claimed 1,000 ADI$');
+  }
 
-    function submitTask(taskId, reward, link) {
-      window.open(link, '_blank');
-
-      database.ref('users/' + userId + '/tasks/' + taskId).set({
-        status: 'pending',
-        reward: reward,
-        submittedAt: Date.now()
-      });
-
-      showAlert('Task submitted! Status: Under Review');
+  // ৯. Daily Mining (দিনে ১ বার - ৫০০ $ADI)
+  function startMining() {
+    if (isBanned) return;
+    if (lastMineDate === todayDate) {
+      showAlert("Daily mining limit reached (1/1)! Try again tomorrow.");
+      return;
     }
+    const newBalance = userBalance + 500;
+    userRef.update({ 
+      balance: newBalance,
+      lastMineDate: todayDate,
+      ipAddress: userIP || "unknown"
+    });
+    showAlert('Mined +500 ADI$ Tokens!');
+  }
 
-    function updateTasksUI() {
-      ['task1', 'task2'].forEach(taskId => {
-        const btn = document.getElementById(taskId + 'Btn');
-        if (btn && tasksData[taskId]) {
-          const status = tasksData[taskId].status;
-          if (status === 'pending') {
-            btn.innerText = "In Review";
-            btn.className = "btn btn-pending";
-            btn.onclick = null;
-          } else if (status === 'approved') {
-            btn.innerText = "Approved";
-            btn.className = "btn btn-completed";
-            btn.onclick = null;
-          }
+  // ১০. Task Submission
+  function submitTask(taskId, reward, link) {
+    if (isBanned) return;
+    window.open(link, '_blank');
+    database.ref('users/' + userId + '/tasks/' + taskId).set({
+      status: 'pending',
+      reward: reward,
+      submittedAt: Date.now()
+    });
+    showAlert('Task submitted! Status: Under Review');
+  }
+
+  function updateTasksUI() {
+    ['task1', 'task2'].forEach(taskId => {
+      const btn = document.getElementById(taskId + 'Btn');
+      if (btn && tasksData[taskId]) {
+        const status = tasksData[taskId].status;
+        if (status === 'pending') {
+          btn.innerText = "In Review";
+          btn.className = "btn btn-pending";
+          btn.onclick = null;
+        } else if (status === 'approved') {
+          btn.innerText = "Approved";
+          btn.className = "btn btn-completed";
+          btn.onclick = null;
         }
-      });
-    }
-
-    function connectOrSaveWallet() {
-      const address = document.getElementById('walletInput').value.trim();
-      if (address.length > 5) {
-        userRef.update({ wallet: address });
-        showAlert('Wallet Address Saved Successfully!');
-      } else {
-        showAlert('Please enter a valid wallet address');
       }
-    }
+    });
+  }
 
-    function showAlert(msg) {
-      if (tg && tg.showAlert) { 
-        tg.showAlert(msg); 
-      } else { 
-        alert(msg); 
-      }
+  // ১১. Wallet Address Save
+  function connectOrSaveWallet() {
+    if (isBanned) return;
+    const walletInput = document.getElementById('walletInput');
+    const address = walletInput ? walletInput.value.trim() : "";
+    if (address.length > 5) {
+      userRef.update({ wallet: address });
+      showAlert('Wallet Address Saved Successfully!');
+    } else {
+      showAlert('Please enter a valid wallet address');
     }
-  </script>
+  }
+
+  // ১২. Alert System
+  function showAlert(msg) {
+    if (tg && tg.showAlert) { 
+      tg.showAlert(msg); 
+    } else { 
+      alert(msg); 
+    }
+  }
+    </script>
+  
 </body>
             </html>
   
