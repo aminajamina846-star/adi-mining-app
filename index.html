@@ -564,20 +564,21 @@
       </div>
     </div>
 
-    <!-- 2. MINE PAGE -->
-<div id="page-mine" class="page">
-  <div class="card card-silver" style="text-align: center; padding: 35px 20px;">
-    <div class="mining-circle" id="miningCircle" style="width: 110px; height: 110px; margin: 0 auto 15px auto; border-radius: 50%; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #1e293b; border: 2px solid rgba(255,255,255,0.2);">
-      <img src="https://raw.githubusercontent.com/aminajanina844-star/adi-nining-app/main/IMG_20260919-WA0003.jpg" alt="ADI Coin" style="width: 100%; height: 100%; object-fit: cover;">
+      <!-- 2. MINE PAGE -->
+  <div id="page-mine" class="page">
+    <div class="card card-silver" style="text-align: center; padding: 35px 20px;">
+      <div style="width: 110px; height: 110px; margin: 0 auto 15px auto; border-radius: 50%; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #1e293b; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);">
+        <img src="https://raw.githubusercontent.com/aminajanina844-star/adi-nining-app/main/IMG_20260919-WA0003.jpg" alt="ADI Coin" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+      </div>
+      <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Mining Protocol</h2>
+      <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 24px;" id="miningTimer">Tap below to initialize block mining session and claim tokens.</p>
+      <button class="btn btn-metallic" id="mineBtn" style="width: 100%; padding: 16px; font-size: 13px;" onclick="startMining()"><i class="fa-solid fa-play"></i> Start Mining (+500 ADI$)</button>
     </div>
-    <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Mining Protocol</h2>
-    <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 24px;" id="miningTimer">Tap below to initialize block mining session and claim tokens.</p>
-    <button class="btn btn-metallic" id="mineBtn" style="width: 100%; padding: 16px; font-size: 13px;" onclick="startMining()"><i class="fa-solid fa-play"></i> Start Mining (+500 ADI$)</button>
+    
+    <!-- Remote Ad Container -->
+    <div class="remote-ad-showup"></div>
   </div>
-  
-  <!-- Remote Ad Container -->
-  <div class="remote-ad-showup"></div>
-</div>
+
     
     <!-- 3. MARKETS PAGE -->
     <div id="page-markets" class="page">
