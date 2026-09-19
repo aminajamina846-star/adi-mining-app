@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ADI Mining - Executive Metallic Control Center</title>
+  <title>ADI Mining - Executive Control & Management Center</title>
   
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -16,12 +16,14 @@
   <style>
     :root {
       --bg-dark: #07090e;
-      --card-bg: rgba(18, 22, 31, 0.75);
+      --card-bg: rgba(18, 22, 31, 0.85);
       --card-border: rgba(255, 255, 255, 0.12);
       --silver-gradient: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 50%, #cbd5e1 100%);
       --silver-glow: 0 0 15px rgba(226, 232, 240, 0.2);
       --text-main: #f8fafc;
       --text-sub: #94a3b8;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,7 +37,6 @@
       min-height: 100vh;
     }
 
-    /* Glassmorphism Cards */
     .card {
       background: var(--card-bg);
       backdrop-filter: blur(12px);
@@ -47,9 +48,7 @@
       transition: transform 0.2s ease, border-color 0.2s ease;
     }
 
-    .card:hover {
-      border-color: rgba(226, 232, 240, 0.3);
-    }
+    .card:hover { border-color: rgba(226, 232, 240, 0.3); }
 
     .header {
       display: flex;
@@ -64,7 +63,7 @@
       background: var(--silver-gradient);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 800;
       letter-spacing: -0.5px;
     }
@@ -124,7 +123,6 @@
       box-shadow: 0 0 10px rgba(203, 213, 225, 0.2);
     }
 
-    /* Metallic Buttons */
     button {
       width: 100%;
       padding: 12px;
@@ -139,48 +137,15 @@
       box-shadow: var(--silver-glow);
     }
 
-    button:hover {
-      opacity: 0.95;
-      transform: translateY(-1px);
-    }
+    button:hover { opacity: 0.95; transform: translateY(-1px); }
 
-    .btn-ban {
-      background: linear-gradient(135deg, #f87171 0%, #dc2626 100%) !important;
-      color: #fff !important;
-      box-shadow: none !important;
-    }
+    .btn-ban { background: linear-gradient(135deg, #f87171 0%, #dc2626 100%) !important; color: #fff !important; }
+    .btn-unban { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%) !important; color: #0f172a !important; }
+    .btn-approve { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); color: #0f172a; width: auto; padding: 6px 12px; font-size: 11px; }
+    .btn-reject { background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); color: #fff; width: auto; padding: 6px 12px; font-size: 11px; }
+    .btn-del { background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%); color: #fff; width: auto; padding: 6px 10px; font-size: 11px; }
+    .btn-copy { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid var(--card-border); padding: 4px 8px; width: auto; font-size: 10px; border-radius: 6px; }
 
-    .btn-unban {
-      background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%) !important;
-      color: #0f172a !important;
-      box-shadow: none !important;
-    }
-
-    .btn-approve {
-      background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
-      color: #0f172a;
-      width: auto;
-      padding: 6px 14px;
-      font-size: 11px;
-    }
-
-    .btn-reject {
-      background: linear-gradient(135deg, #f87171 0%, #dc2626 100%);
-      color: #fff;
-      width: auto;
-      padding: 6px 14px;
-      font-size: 11px;
-    }
-
-    .btn-del {
-      background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
-      color: #fff;
-      width: auto;
-      padding: 6px 12px;
-      font-size: 11px;
-    }
-
-    /* Tables */
     .table-responsive {
       overflow-x: auto;
       margin-top: 15px;
@@ -188,156 +153,155 @@
       border: 1px solid var(--card-border);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      text-align: left;
-    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: left; }
+    th { background: rgba(30, 41, 59, 0.8); color: #cbd5e1; padding: 14px; font-weight: 700; border-bottom: 1px solid var(--card-border); white-space: nowrap; }
+    td { padding: 12px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: #e2e8f0; white-space: nowrap; }
+    tr:hover { background: rgba(255, 255, 255, 0.02); }
 
-    th {
-      background: rgba(30, 41, 59, 0.8);
-      color: #cbd5e1;
-      padding: 14px;
-      font-weight: 700;
-      border-bottom: 1px solid var(--card-border);
-      white-space: nowrap;
-    }
-
-    td {
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      color: #e2e8f0;
-      white-space: nowrap;
-    }
-
-    tr:hover {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .badge {
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-    }
-
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; }
     .badge-active { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.3); }
     .badge-banned { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(252, 165, 165, 0.3); }
-    .badge-mining { background: rgba(148, 163, 184, 0.15); color: #e2e8f0; border: 1px solid rgba(226, 232, 240, 0.3); }
+
+    /* Modal Styling */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      display: none; justify-content: center; align-items: center; z-index: 99999;
+    }
+    .modal-content {
+      background: #0f172a; border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 24px; width: 90%; max-width: 500px;
+      max-height: 85vh; overflow-y: auto; color: #fff;
+    }
   </style>
 </head>
 <body>
 
-  <!-- 🔒 Password Lock Screen -->
-  <div id="loginOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #07090e; z-index: 9999; display: flex; justify-content: center; align-items: center;">
+  <!-- Password Lock -->
+  <div id="loginOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #07090e; z-index: 99999; display: flex; justify-content: center; align-items: center;">
     <div class="card" style="text-align: center; max-width: 360px; width: 90%;">
       <i class="fa-solid fa-shield-halved" style="font-size: 40px; color: #cbd5e1; margin-bottom: 15px;"></i>
-      <h2 style="font-size: 20px; margin-bottom: 8px;">Admin Portal Access</h2>
-      <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 20px;">অ্যাডমিন কন্ট্রোল সেন্টারে ঢুকতে পাসওয়ার্ড দিন</p>
+      <h2 style="font-size: 20px; margin-bottom: 8px;">Executive Control Portal</h2>
+      <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 20px;">অ্যাডমিন পাসওয়ার্ড দিন</p>
       <input type="password" id="adminPassInput" placeholder="Enter Password" style="margin-bottom: 15px; text-align: center;">
-      <button onclick="checkAdminPassword()">Unlock Dashboard</button>
+      <button onclick="checkAdminPassword()">Unlock Management Portal</button>
     </div>
   </div>
 
-  <!-- 🟢 Main Silver Dashboard -->
+  <!-- User Bio Modal -->
+  <div id="bioModal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--card-border); padding-bottom:10px;">
+        <h3 style="margin:0; font-size:16px;"><i class="fa-solid fa-id-card"></i> Complete User Profile</h3>
+        <span onclick="closeBioModal()" style="cursor:pointer; font-size:20px;">&times;</span>
+      </div>
+      <div id="bioModalBody">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Main Dashboard -->
   <div id="mainDashboard" style="display: none;">
     <div class="header">
-      <h1><i class="fa-solid fa-cube"></i> ADI MINING - CONTROL CENTER</h1>
-      <div class="stats-badge"><i class="fa-solid fa-users"></i> Total Users: <span id="totalUsers" style="color: #fff;">0</span></div>
+      <h1><i class="fa-solid fa-cube"></i> ADI MINING - EXECUTIVE CONTROL CENTER</h1>
+      <div style="display:flex; gap:10px;">
+        <div class="stats-badge"><i class="fa-solid fa-users"></i> Users: <span id="totalUsers" style="color: #fff;">0</span></div>
+        <div class="stats-badge"><i class="fa-solid fa-chart-line"></i> Total Ref Profit: <span id="totalRefTokens" style="color: var(--accent-green);">0 ADI$</span></div>
+      </div>
     </div>
 
+    <!-- Mass Operations & Announcement -->
     <div class="grid-container">
-      <!-- Add Task -->
       <div class="card">
-        <h3><i class="fa-solid fa-list-check"></i> Create New Task</h3>
-        <label>Task Title</label>
-        <input type="text" id="taskTitle" placeholder="e.g. Join Telegram Channel">
-
-        <label>Reward Tokens (ADI$)</label>
-        <input type="number" id="taskReward" placeholder="e.g. 100">
-
-        <label>Task Link</label>
-        <input type="text" id="taskLink" placeholder="https://t.me/your_channel">
-
-        <label>Proof Needed</label>
-        <select id="taskType">
-          <option value="Username">Username / ID</option>
-          <option value="Screenshot">Screenshot Link</option>
-        </select>
-
-        <button onclick="addNewTask()" style="margin-top: 15px;">Publish Task</button>
+        <h3><i class="fa-solid fa-bullhorn"></i> Global Notification & Wish System</h3>
+        <label>Notification Title (e.g. Happy Birthday / Launch Bonus)</label>
+        <input type="text" id="notifTitle" placeholder="Welcome Gift / Announcement">
+        <label>Message Content</label>
+        <textarea id="notifMsg" rows="3" placeholder="Write message for all app users..."></textarea>
+        <button onclick="sendGlobalNotification()" style="margin-top:12px;">Broadcast Notification</button>
       </div>
 
-      <!-- Quick Control -->
       <div class="card">
-        <h3><i class="fa-solid fa-sliders"></i> User Quick Control</h3>
-        <label>User Telegram ID / Key</label>
+        <h3><i class="fa-solid fa-coins"></i> Mass Balance Modifier (All Users)</h3>
+        <label>Add / Deduct Amount for Every User</label>
+        <input type="number" id="massAmount" placeholder="e.g. 100 (Use -100 for deduction)">
+        <label>Reason / Note</label>
+        <input type="text" id="massReason" placeholder="e.g. System Bonus / Event Reward">
+        <button onclick="executeMassBalanceUpdate()" style="margin-top:12px; background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); color:#fff;">Update All Users Balance</button>
+      </div>
+
+      <div class="card">
+        <h3><i class="fa-solid fa-sliders"></i> Single User Quick Control</h3>
+        <label>User Telegram ID</label>
         <input type="text" id="targetUserId" placeholder="Enter Telegram User ID">
-
-        <label>New Balance (ADI$)</label>
+        <label>Set Exact Balance (ADI$)</label>
         <input type="number" id="newBalance" placeholder="e.g. 5000">
-        <button onclick="updateUserBalance()" style="margin-bottom: 15px; margin-top: 15px;">Update Balance</button>
-
+        <button onclick="updateUserBalance()" style="margin-bottom: 12px; margin-top: 10px;">Set Balance</button>
         <div style="display: flex; gap: 10px;">
           <button class="btn-ban" onclick="setUserBanStatus(true)">Ban User</button>
           <button class="btn-unban" onclick="setUserBanStatus(false)">Unban User</button>
         </div>
       </div>
+    </div>
 
-      <!-- Live Dynamic Injector -->
+    <div class="grid-container">
+      <!-- Create Task -->
       <div class="card">
-        <h3><i class="fa-solid fa-code"></i> Code Injector Engine</h3>
-        <label>Feature Key Name</label>
-        <input type="text" id="featureKey" placeholder="e.g. daily_checkin_banner">
+        <h3><i class="fa-solid fa-list-check"></i> Create / Modify Task</h3>
+        <input type="hidden" id="editingTaskId" value="">
+        <label>Task Title</label>
+        <input type="text" id="taskTitle" placeholder="e.g. Join Telegram Channel">
+        <label>Reward Tokens (ADI$)</label>
+        <input type="number" id="taskReward" placeholder="e.g. 100">
+        <label>Task Link</label>
+        <input type="text" id="taskLink" placeholder="https://t.me/your_channel">
+        <label>Proof Needed</label>
+        <select id="taskType">
+          <option value="Username">Username / ID</option>
+          <option value="Screenshot">Screenshot Link</option>
+        </select>
+        <button onclick="saveTask()" id="saveTaskBtn" style="margin-top: 15px;">Publish Task</button>
+      </div>
 
-        <label>HTML / JS / CSS Code</label>
-        <textarea id="featureCode" rows="4" placeholder="Paste HTML/CSS/JS code..."></textarea>
-
-        <button onclick="publishFeatureCode()" style="margin-top: 15px;">Push Code Live</button>
+      <!-- Code Injector Engine -->
+      <div class="card">
+        <h3><i class="fa-solid fa-code"></i> Live Ad / Remote Code Injector</h3>
+        <label>Ad Key Name (Type 'join' or 'show_up')</label>
+        <select id="featureKeySelect">
+          <option value="show_up">show_up (Top & Page Banners)</option>
+          <option value="join">join (Task & Bottom Banners)</option>
+        </select>
+        <label>HTML / JS Ad Script</label>
+        <textarea id="featureCode" rows="5" placeholder="Paste Adsterra / A-ADS script or custom HTML..."></textarea>
+        <button onclick="publishFeatureCode()" style="margin-top: 12px;">Push Ad Code Live</button>
       </div>
     </div>
 
-    <!-- Live Injected Features Table -->
+    <!-- Active Remote Injected Ads Table -->
     <div class="card" style="margin-bottom: 30px;">
-      <h3><i class="fa-solid fa-puzzle-piece"></i> Active Remote Injected Features</h3>
-      <div id="remoteFeaturesList" class="table-responsive">Loading...</div>
+      <h3><i class="fa-solid fa-puzzle-piece"></i> Active Remote Ads</h3>
+      <div id="remoteAdsList" class="table-responsive">Loading...</div>
     </div>
 
-    <!-- Active Tasks -->
+    <!-- Active Tasks Table -->
     <div class="card" style="margin-bottom: 30px;">
-      <h3><i class="fa-solid fa-tasks"></i> Active Dynamic Tasks</h3>
+      <h3><i class="fa-solid fa-tasks"></i> Dynamic Tasks Directory</h3>
       <div id="activeTasksList" class="table-responsive">Loading...</div>
     </div>
 
     <!-- Task Proofs Review -->
     <div class="card" style="margin-bottom: 30px;">
-      <h3><i class="fa-solid fa-file-invoice"></i> User Task Proof Submissions</h3>
+      <h3><i class="fa-solid fa-file-invoice"></i> Pending Task Proof Verification</h3>
       <div id="proofsTable" class="table-responsive">Loading...</div>
-    </div>
-
-    <!-- Fetch User History Section -->
-    <div class="card" style="margin-bottom: 30px;">
-      <h3><i class="fa-solid fa-clock-rotate-left"></i> Specific User Transaction History</h3>
-      <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <input type="text" id="historyUserId" placeholder="Enter Telegram User ID (e.g. 8564284672)" style="margin: 0;">
-        <button onclick="fetchUserHistory()" style="width: 160px; flex-shrink: 0;">Fetch History</button>
-      </div>
-      <div id="userHistoryTable" class="table-responsive">
-        <p style="font-size: 12px; color: var(--text-sub); padding: 15px;">User ID বসিয়ে তথ্য চেক করুন।</p>
-      </div>
     </div>
 
     <!-- All Users Directory -->
     <div class="card">
-      <h3><i class="fa-solid fa-address-book"></i> Full Users Database</h3>
+      <h3><i class="fa-solid fa-address-book"></i> Registered Users Directory & Wallet Export</h3>
       <div id="usersTable" class="table-responsive">Loading...</div>
     </div>
   </div>
 
   <script>
-    // 🔑 Admin Password (এখানে আপনার পাসওয়ার্ড বদলাতে পারেন)
     const ADMIN_SECRET_PASS = "admin1234";
 
     function checkAdminPassword() {
@@ -345,88 +309,147 @@
       if (inputPass === ADMIN_SECRET_PASS) {
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainDashboard').style.display = 'block';
-      } else {
-        alert("ভুল পাসওয়ার্ড!");
-      }
+      } else { alert("ভুল পাসওয়ার্ড!"); }
     }
 
-    // Firebase Init
-    const firebaseConfig = {
-      databaseURL: "https://adi-mining-bot-6e8f1-default-rtdb.firebaseio.com"
-    };
+    const firebaseConfig = { databaseURL: "https://adi-mining-bot-6e8f1-default-rtdb.firebaseio.com" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Publish Code Injector
+    // Copy Wallet Helper
+    function copyText(text) {
+      if(!text || text === 'Not Connected' || text === 'Not Set') { alert("No wallet connected!"); return; }
+      navigator.clipboard.writeText(text).then(() => alert("Wallet Copied: " + text));
+    }
+
+    // Global Notification System
+    function sendGlobalNotification() {
+      const title = document.getElementById('notifTitle').value.trim();
+      const message = document.getElementById('notifMsg').value.trim();
+      if(!title || !message) { alert("Fill Notification Title & Message!"); return; }
+
+      db.ref('global_notification').set({
+        title: title,
+        message: message,
+        timestamp: Date.now()
+      }).then(() => {
+        alert("Global Announcement Sent Successfully!");
+        document.getElementById('notifTitle').value = "";
+        document.getElementById('notifMsg').value = "";
+      });
+    }
+
+    // Mass Balance Modifier
+    function executeMassBalanceUpdate() {
+      const amount = parseFloat(document.getElementById('massAmount').value);
+      const reason = document.getElementById('massReason').value.trim() || "Event Reward";
+
+      if(isNaN(amount) || amount === 0) { alert("Enter valid Amount!"); return; }
+      if(!confirm(`Are you sure you want to add ${amount} ADI$ to ALL registered users?`)) return;
+
+      db.ref('users').once('value', (snap) => {
+        const users = snap.val();
+        if(!users) return;
+
+        let updates = {};
+        Object.keys(users).forEach(uid => {
+          const currentBal = Number(users[uid].balance) || 0;
+          const newBal = Math.max(0, currentBal + amount);
+          updates[`users/${uid}/balance`] = newBal;
+
+          const histId = 'hist_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+          updates[`users/${uid}/history/${histId}`] = {
+            title: reason,
+            amount: (amount >= 0 ? "+" : "") + amount + " ADI$",
+            date: new Date().toLocaleString(),
+            type: "Admin Adjustment"
+          };
+        });
+
+        db.ref().update(updates).then(() => alert("Mass Balance Update Completed!"));
+      });
+    }
+
+    // Fixed Code Injector for Remote Ads (injected_features)
     function publishFeatureCode() {
-      const key = document.getElementById('featureKey').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+      const key = document.getElementById('featureKeySelect').value;
       const code = document.getElementById('featureCode').value.trim();
+      if(!code) { alert("Ad script required!"); return; }
 
-      if(!key || !code) { alert("Key and Code required!"); return; }
-
-      db.ref('remote_features/' + key).set({ code: code, timestamp: Date.now() }).then(() => {
-        alert("Feature Injected Successfully!");
-        document.getElementById('featureKey').value = "";
+      db.ref('injected_features/' + key).set(code).then(() => {
+        alert("Ad Code Published Live under '" + key + "'!");
         document.getElementById('featureCode').value = "";
       });
     }
 
-    // Load Live Remote Features
-    db.ref('remote_features').on('value', (snap) => {
-      const features = snap.val();
-      const container = document.getElementById('remoteFeaturesList');
-      if(!features) { container.innerHTML = "<p style='padding:15px; font-size:12px; color:var(--text-sub);'>No injected features active.</p>"; return; }
+    // Load Live Remote Injected Ads Table
+    db.ref('injected_features').on('value', (snap) => {
+      const ads = snap.val();
+      const container = document.getElementById('remoteAdsList');
+      if(!ads) { container.innerHTML = "<p style='padding:15px; font-size:12px; color:var(--text-sub);'>No injected ads active.</p>"; return; }
 
-      let html = "<table><tr><th>Key</th><th>Preview</th><th>Action</th></tr>";
-      Object.keys(features).forEach(key => {
-        const preview = features[key].code.replace(/</g, "&lt;").replace(/>/g, "&gt;").substring(0, 50) + "...";
-        html += `<tr><td><b>${key}</b></td><td><code>${preview}</code></td><td><button class="btn-del" onclick="deleteFeature('${key}')">Delete</button></td></tr>`;
+      let html = "<table><tr><th>Ad Container Key</th><th>Script Content</th><th>Action</th></tr>";
+      Object.keys(ads).forEach(k => {
+        const scriptPreview = ads[k].replace(/</g, "&lt;").replace(/>/g, "&gt;").substring(0, 80) + "...";
+        html += `<tr><td><b style="color:var(--accent-green);">${k}</b></td><td><code>${scriptPreview}</code></td><td><button class="btn-del" onclick="if(confirm('Remove ad?')) db.ref('injected_features/${k}').remove();">Delete</button></td></tr>`;
       });
       html += "</table>";
       container.innerHTML = html;
     });
 
-    function deleteFeature(key) {
-      if(confirm("Remove this feature?")) db.ref('remote_features/' + key).remove();
-    }
-
-    // Create Task
-    function addNewTask() {
+    // Create & Edit Task
+    function saveTask() {
+      const taskId = document.getElementById('editingTaskId').value || ('task_' + Date.now());
       const title = document.getElementById('taskTitle').value.trim();
       const reward = parseFloat(document.getElementById('taskReward').value);
       const link = document.getElementById('taskLink').value.trim();
       const type = document.getElementById('taskType').value;
 
-      if (!title || isNaN(reward) || !link) { alert("Fill all details!"); return; }
+      if (!title || isNaN(reward) || !link) { alert("Fill all Task details!"); return; }
 
-      const taskId = 'task_' + Date.now();
       db.ref('custom_tasks/' + taskId).set({ title, reward, link, type }).then(() => {
-        alert("Task Published!");
+        alert("Task Saved!");
+        document.getElementById('editingTaskId').value = "";
         document.getElementById('taskTitle').value = "";
         document.getElementById('taskReward').value = "";
         document.getElementById('taskLink').value = "";
+        document.getElementById('saveTaskBtn').innerText = "Publish Task";
       });
     }
 
-    // Load Tasks
+    function editTask(id, title, reward, link, type) {
+      document.getElementById('editingTaskId').value = id;
+      document.getElementById('taskTitle').value = title;
+      document.getElementById('taskReward').value = reward;
+      document.getElementById('taskLink').value = link;
+      document.getElementById('taskType').value = type;
+      document.getElementById('saveTaskBtn').innerText = "Update Task";
+    }
+
     db.ref('custom_tasks').on('value', (snap) => {
       const tasks = snap.val();
       const container = document.getElementById('activeTasksList');
       if(!tasks) { container.innerHTML = "<p style='padding:15px; font-size:12px; color:var(--text-sub);'>No active tasks.</p>"; return; }
 
-      let html = "<table><tr><th>Title</th><th>Reward</th><th>Link</th><th>Type</th><th>Action</th></tr>";
+      let html = "<table><tr><th>Title</th><th>Reward</th><th>Link</th><th>Type</th><th>Actions</th></tr>";
       Object.keys(tasks).forEach(id => {
-        html += `<tr><td>${tasks[id].title}</td><td>+${tasks[id].reward} ADI$</td><td><a href="${tasks[id].link}" target="_blank" style="color:#cbd5e1;">Open Link</a></td><td>${tasks[id].type}</td><td><button class="btn-del" onclick="deleteTask('${id}')">Delete</button></td></tr>`;
+        const t = tasks[id];
+        html += `<tr>
+          <td><b>${t.title}</b></td>
+          <td>+${t.reward} ADI$</td>
+          <td><a href="${t.link}" target="_blank" style="color:#cbd5e1;">Visit Link</a></td>
+          <td>${t.type}</td>
+          <td>
+            <button class="btn-approve" onclick="editTask('${id}', '${t.title}', ${t.reward}, '${t.link}', '${t.type}')">Edit</button>
+            <button class="btn-del" onclick="if(confirm('Delete task?')) db.ref('custom_tasks/${id}').remove();">Delete</button>
+          </td>
+        </tr>`;
       });
       html += "</table>";
       container.innerHTML = html;
     });
 
-    function deleteTask(id) {
-      if(confirm("Delete task?")) db.ref('custom_tasks/' + id).remove();
-    }
-
-    // Balance & Ban Controls
+    // Ban & Balance Control
     function updateUserBalance() {
       const userId = document.getElementById('targetUserId').value.trim();
       const balance = parseFloat(document.getElementById('newBalance').value);
@@ -439,10 +462,14 @@
       const userId = document.getElementById('targetUserId').value.trim();
       if(!userId) { alert("Enter User ID!"); return; }
 
-      db.ref('users/' + userId + '/isBanned').set(isBanned).then(() => alert(`User set to: ${isBanned ? 'BANNED' : 'ACTIVE'}`));
+      let updates = {};
+      updates[`users/${userId}/banned`] = isBanned;
+      updates[`users/${userId}/isBanned`] = isBanned;
+
+      db.ref().update(updates).then(() => alert(`User Ban Status Updated to: ${isBanned}`));
     }
 
-    // Task Proof Approval
+    // Proof Approval
     db.ref('pending_tasks').on('value', (snap) => {
       const proofs = snap.val();
       const container = document.getElementById('proofsTable');
@@ -451,10 +478,16 @@
       let html = "<table><tr><th>User ID</th><th>Task Name</th><th>Proof Submitted</th><th>Reward</th><th>Action</th></tr>";
       Object.keys(proofs).forEach(proofKey => {
         const p = proofs[proofKey];
-        html += `<tr><td>${p.userId || p.username}</td><td>${p.taskName}</td><td><b>${p.proof}</b></td><td>+${p.reward} ADI$</td><td>
-          <button class="btn-approve" onclick="approveProof('${proofKey}', '${p.userId}', ${p.reward})">Approve</button>
-          <button class="btn-reject" onclick="rejectProof('${proofKey}')">Reject</button>
-        </td></tr>`;
+        html += `<tr>
+          <td><b>${p.userId || p.username}</b></td>
+          <td>${p.taskName}</td>
+          <td><code style="color:var(--accent-green);">${p.proof}</code></td>
+          <td>+${p.reward} ADI$</td>
+          <td>
+            <button class="btn-approve" onclick="approveProof('${proofKey}', '${p.userId}', ${p.reward})">Approve</button>
+            <button class="btn-reject" onclick="if(confirm('Reject proof?')) db.ref('pending_tasks/${proofKey}').remove();">Reject</button>
+          </td>
+        </tr>`;
       });
       html += "</table>";
       container.innerHTML = html;
@@ -464,40 +497,11 @@
       if(!userId) { alert("User ID missing!"); return; }
       db.ref('users/' + userId + '/balance').transaction((curr) => (curr || 0) + parseFloat(reward)).then(() => {
         db.ref('pending_tasks/' + proofKey).remove();
-        alert("Approved & Credited!");
+        alert("Proof Approved and Balance Added!");
       });
     }
 
-    function rejectProof(proofKey) {
-      if(confirm("Reject proof?")) db.ref('pending_tasks/' + proofKey).remove();
-    }
-
-    // Fetch User History
-    function fetchUserHistory() {
-      const uid = document.getElementById('historyUserId').value.trim();
-      const container = document.getElementById('userHistoryTable');
-      if (!uid) { alert("Enter User ID!"); return; }
-
-      container.innerHTML = "<p style='padding:15px;'>Loading...</p>";
-      db.ref('users/' + uid + '/history').on('value', (snap) => {
-        const historyData = snap.val();
-        if (!historyData) {
-          container.innerHTML = `<p style="color:#f87171; padding:15px;">No history found for ID: ${uid}</p>`;
-          return;
-        }
-
-        let html = "<table><tr><th>History ID</th><th>Type</th><th>Amount</th><th>Status</th><th>Time</th></tr>";
-        Object.keys(historyData).reverse().forEach(histId => {
-          const item = historyData[histId];
-          const timeString = item.timestamp ? new Date(item.timestamp).toLocaleString() : 'N/A';
-          html += `<tr><td><code>${histId}</code></td><td><b>${item.type || item.action || 'Transaction'}</b></td><td style="color:#4ade80;">+${item.amount || 0} ADI$</td><td><span class="badge badge-active">${item.status || 'COMPLETED'}</span></td><td><small style="color:var(--text-sub);">${timeString}</small></td></tr>`;
-        });
-        html += "</table>";
-        container.innerHTML = html;
-      });
-    }
-
-    // Load Users Directory
+    // Load Full Users & Wallet Table
     db.ref('users').on('value', (snap) => {
       const users = snap.val();
       const container = document.getElementById('usersTable');
@@ -506,26 +510,87 @@
       const userKeys = Object.keys(users);
       document.getElementById('totalUsers').innerText = userKeys.length;
 
-      let html = "<table><tr><th>User ID / Name</th><th>Balance</th><th>Status</th><th>Mining Status</th><th>IP Address</th><th>Wallet</th><th>Action</th></tr>";
+      let totalRefTokens = 0;
+      let html = "<table><tr><th>User Bio (Click)</th><th>Balance</th><th>Status</th><th>IP Address</th><th>Full Wallet Address</th><th>Action</th></tr>";
+
       userKeys.forEach(uid => {
         const u = users[uid];
-        const isBanned = u.isBanned ? `<span class="badge badge-banned">BANNED</span>` : `<span class="badge badge-active">ACTIVE</span>`;
-        const isMining = u.lastMiningTime && (Date.now() - u.lastMiningTime < 24*60*60*1000);
-        const miningBadge = isMining ? `<span class="badge badge-mining">MINING ACTIVE</span>` : `<span style="color:var(--text-sub);">IDLE</span>`;
+        const isBanned = (u.banned === true || u.isBanned === true);
+        const banBadge = isBanned ? `<span class="badge badge-banned">BANNED</span>` : `<span class="badge badge-active">ACTIVE</span>`;
+        const wallet = u.walletAddress || u.wallet || 'Not Connected';
+
+        if(u.referrals) {
+          totalRefTokens += Object.keys(u.referrals).length * 10;
+        }
 
         html += `<tr>
-          <td><b>${u.username || u.name || uid}</b><br><small style="color:var(--text-sub);">${uid}</small></td>
-          <td><b>${(u.balance || 0).toFixed(2)} ADI$</b></td>
-          <td>${isBanned}</td>
-          <td>${miningBadge}</td>
-          <td>${u.ip || 'N/A'}</td>
-          <td>${u.wallet || 'Not Set'}</td>
-          <td><button style="padding:4px 10px; font-size:11px;" onclick="document.getElementById('targetUserId').value='${uid}'; document.getElementById('historyUserId').value='${uid}';">Select</button></td>
+          <td><b style="color:var(--accent-green); cursor:pointer;" onclick="openBioModal('${uid}')"><i class="fa-solid fa-user"></i> ${u.username || u.name || uid}</b><br><small style="color:var(--text-sub);">${uid}</small></td>
+          <td><b>${(u.balance || 0).toLocaleString()} ADI$</b></td>
+          <td>${banBadge}</td>
+          <td><small>${u.ip || 'N/A'}</small></td>
+          <td>
+            <span style="font-size:11px; font-family:monospace;">${wallet}</span> 
+            ${wallet !== 'Not Connected' ? `<button class="btn-copy" onclick="copyText('${wallet}')">Copy</button>` : ''}
+          </td>
+          <td>
+            <button style="padding:4px 8px; font-size:11px; width:auto;" onclick="document.getElementById('targetUserId').value='${uid}';">Select</button>
+          </td>
         </tr>`;
       });
       html += "</table>";
       container.innerHTML = html;
+      document.getElementById('totalRefTokens').innerText = totalRefTokens.toLocaleString() + " ADI$";
     });
+
+    // User Bio Profile Modal Logic
+    function openBioModal(uid) {
+      document.getElementById('bioModal').style.display = 'flex';
+      const body = document.getElementById('bioModalBody');
+      body.innerHTML = "Loading User Bio...";
+
+      db.ref('users').once('value', (snap) => {
+        const allUsers = snap.val();
+        const u = allUsers[uid];
+        if(!u) { body.innerHTML = "User data not found."; return; }
+
+        // Find Same Device / Same IP Accounts
+        let sameIpAccounts = [];
+        Object.keys(allUsers).forEach(otherUid => {
+          if(otherUid !== uid && u.ip && allUsers[otherUid].ip === u.ip) {
+            sameIpAccounts.push(allUsers[otherUid].username || otherUid);
+          }
+        });
+
+        let refListHtml = "";
+        if(u.referrals) {
+          Object.keys(u.referrals).forEach(rk => {
+            refListHtml += `<li style="font-size:11px; color:var(--accent-green);">@${u.referrals[rk].username || rk} (+10 ADI)</li>`;
+          });
+        } else {
+          refListHtml = "<p style='font-size:11px; color:#888;'>No referrals made.</p>";
+        }
+
+        body.innerHTML = `
+          <div style="font-size:13px; line-height:1.8;">
+            <p><strong>Username:</strong> @${u.username || 'N/A'}</p>
+            <p><strong>Telegram ID:</strong> <code>${uid}</code></p>
+            <p><strong>Balance:</strong> ${u.balance || 0} ADI$</p>
+            <p><strong>IP Address:</strong> ${u.ip || 'Unknown'}</p>
+            <p><strong>Device Info:</strong> <small style="color:var(--text-sub); word-break:break-all;">${u.device || 'N/A'}</small></p>
+            <p><strong>Accounts on Same IP (${sameIpAccounts.length}):</strong> ${sameIpAccounts.length > 0 ? sameIpAccounts.join(', ') : 'None (Unique User)'}</p>
+            <p><strong>Wallet Address:</strong> <code style="word-break:break-all; color:var(--accent-green);">${u.walletAddress || u.wallet || 'Not Connected'}</code></p>
+            <p><strong>Referred By:</strong> ${u.referredBy || 'Direct Join'}</p>
+            <hr style="border-color:var(--card-border); margin:12px 0;">
+            <p><strong>Referral List (${u.referrals ? Object.keys(u.referrals).length : 0}):</strong></p>
+            <ul>${refListHtml}</ul>
+          </div>
+        `;
+      });
+    }
+
+    function closeBioModal() {
+      document.getElementById('bioModal').style.display = 'none';
+    }
   </script>
 </body>
 </html>
