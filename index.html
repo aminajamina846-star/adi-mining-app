@@ -465,8 +465,10 @@
           <button class="btn btn-dark" onclick="autoConnectTrustWallet()"><i class="fa-solid fa-wallet"></i> Wallet</button>
         </div>
       </div>
-<div class="remote-ad-showup"></div>
-      
+
+      <!-- Remote Ad Container -->
+      <div class="remote-ad-showup"></div>
+
       <!-- Invite Friends Button -->
       <button class="btn btn-metallic" onclick="shareReferralLink()" style="width: 100%; margin-bottom: 16px; padding: 14px; font-size: 13px;">
         <i class="fa-solid fa-users"></i> Invite Friends (+10 ADI)
@@ -547,9 +549,11 @@
         <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 24px;" id="miningTimer">Tap below to initialize block mining session and claim tokens.</p>
         <button class="btn btn-metallic" id="mineBtn" style="width: 100%; padding: 16px; font-size: 13px;" onclick="startMining()"><i class="fa-solid fa-play"></i> Start Mining (+500 ADI$)</button>
       </div>
+
+      <!-- Remote Ad Container -->
+      <div class="remote-ad-showup"></div>
     </div>
-<div class="remote-ad-showup"></div>
-    
+
     <!-- 3. MARKETS PAGE -->
     <div id="page-markets" class="page">
       <div class="card">
@@ -567,18 +571,46 @@
           <div><strong>$3,420.50</strong></div>
         </div>
       </div>
+
+      <!-- Remote Ad Container -->
+      <div class="remote-ad-showup"></div>
     </div>
-    <div class="remote-ad-showup"></div>
-    
 
     <!-- 4. TASKS PAGE -->
     <div id="page-tasks" class="page">
       <div class="card">
         <div class="section-title" style="margin-top: 0;">Available Missions</div>
         
+        <!-- Remote Ad Containers -->
         <div class="remote-ad-showup"></div>
         <div class="remote-ad-join"></div>
-        
+
+        <!-- Instant Reward Tasks -->
+        <div class="market-item">
+          <div>
+            <strong style="font-size: 13px; display: block;">Join Telegram Channel</strong>
+            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+2,000 ADI$</span>
+          </div>
+          <button class="btn btn-metallic" id="task1Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task1', 2000, 'Telegram Channel')">Claim</button>
+        </div>
+
+        <div class="market-item">
+          <div>
+            <strong style="font-size: 13px; display: block;">Subscribe YouTube Channel</strong>
+            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+3,000 ADI$</span>
+          </div>
+          <button class="btn btn-metallic" id="task2Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task2', 3000, 'YouTube Subscribe')">Claim</button>
+        </div>
+
+        <div class="market-item">
+          <div>
+            <strong style="font-size: 13px; display: block;">Watch Video & Enter Code</strong>
+            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+5,000 ADI$</span>
+          </div>
+          <button class="btn btn-metallic" id="task3Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task3', 5000, 'Watch Video Code', 'ADI2026')">Verify & Claim</button>
+        </div>
+      </div>
+
       <!-- Single Proof Submissions Section -->
       <div class="section-title">Manual Verification Tasks (Once Allowed)</div>
 
@@ -591,12 +623,13 @@
         <input type="text" id="proof-tg" class="task-input" placeholder="Enter Telegram Username (@username)">
         <button class="btn btn-metallic" id="btn-proof-tg" style="width:100%; padding:8px;" onclick="submitProofOnce('proof_tg', 'Telegram Channel', 10, 'proof-tg')">Submit Proof</button>
       </div>
-<div class="task-card">
+
+      <div class="task-card">
         <div class="task-header">
-          <span class="task-title"><i class="fa-brands fa-X" style="color:#229ED9;"></i> Twitter X </span>
+          <span class="task-title"><i class="fa-brands fa-x-twitter" style="color:#229ED9;"></i> Twitter X </span>
           <span class="task-reward">+10 ADI$</span>
         </div>
-        <a href="https://x.com/adiairdrops" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px; display:inline-block;">1. Follow X Profile</a>
+ <a href="https://x.com/adiairdrops" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px; display:inline-block;">1. Follow X Profile</a>
         <input type="text" id="proof-x" class="task-input" placeholder="Enter X Username (@username)">
         <button class="btn btn-metallic" id="btn-proof-x" style="width:100%; padding:8px;" onclick="submitProofOnce('proof_x', 'Follow X', 20, 'proof-x')">Submit Proof</button>
       </div>
@@ -633,28 +666,28 @@
       <div id="dynamicTasksContainer"></div>
     </div>
 
-       <!-- 5. PROFILE & WALLET PAGE -->
+    <!-- 5. PROFILE & WALLET PAGE -->
     <div id="page-profile" class="page">
-        <div class="card card-silver">
-            <div class="card-header">
-                <div class="section-title" style="margin-top: 0;">Account Verification</div>
-            </div>
-            <div style="font-size: 13px; line-height: 2;">
-                <p><strong>Username:</strong> <span id="profUser" style="color: var(--text-sub);">Loading...</span></p>
-                <p><strong>Telegram ID:</strong> <span id="profId" style="color: var(--text-sub);">-</span></p>
-                <p><strong>Current Balance:</strong> <span id="profBalance" style="color: var(--accent-silver); font-weight: 600;">0 ADI</span></p>
-                <p><strong>Wallet Address:</strong> <span id="connectedWalletAddr" style="color: var(--accent-green); font-size: 11px;">Not Connected</span></p>
-            </div>
-            
-            <button class="btn btn-metallic" id="walletConnBtn" style="width: 100%; margin-top: 22px;" onclick="autoConnectTrustWallet()">
-                <i class="fa-solid fa-wallet"></i> Connect Trust Wallet
-            </button>
-
-            <!-- Remote Ads Section -->
-            <div class="remote-ad-join"></div>
-            <div class="remote-ad-showup"></div>
+      <div class="card card-silver">
+        <div class="section-title" style="margin-top: 0;">Account Verification</div>
+        <div style="font-size: 13px; line-height: 2;">
+          <p><strong>Username:</strong> <span id="profUser" style="color: var(--text-sub);">Loading...</span></p>
+          <p><strong>Telegram ID:</strong> <span id="profId" style="color: var(--text-sub);">...</span></p>
+          <p><strong>Current Balance:</strong> <span id="profBalance" style="color: var(--accent-silver); font-weight: 800;">0 ADI$</span></p>
+          <p><strong>Wallet Address:</strong> <span id="connectedWalletAddr" style="color: var(--accent-green); font-size: 11px; word-break: break-all;">Not Connected</span></p>
         </div>
+        <button class="btn btn-metallic" id="walletConnBtn" style="width: 100%; margin-top: 20px;" onclick="autoConnectTrustWallet()">
+          <i class="fa-solid fa-wallet"></i> Connect Trust Wallet
+        </button>
+
+        <!-- Remote Ad Containers -->
+        <div class="remote-ad-join"></div>
+        <div class="remote-ad-showup"></div>
+      </div>
     </div>
+
+  </div>
+
   <!-- History Modal Window -->
   <div id="historyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:#141414; width:90%; max-width:400px; border-radius:16px; padding:20px; border:1px solid rgba(255,255,255,0.2); box-shadow:0 10px 25px rgba(0,0,0,0.8);">
@@ -682,49 +715,43 @@
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
-// অ্যাডমিন প্যানেল থেকে ফায়ারবেসের মাধ্যমে রিমোট কোড লোড করার ফাংশন
-async function loadRemoteInjectedFeatures() {
-    try {
-        // ফায়ারবেস ডাটাবেস থেকে 'injected_features' বা রিমোট কোডের ডেটা ফেচ করা
-        let snapshot = await firebase.database().ref('injected_features').once('value');
+
+    // Remote Ad Injection System
+    async function loadRemoteInjectedFeatures() {
+      try {
+        let snapshot = await database.ref('injected_features').once('value');
         let data = snapshot.val();
 
         if (data) {
-            // ১. 'join' কি (Key) এর কোড অ্যাপের সব জায়গায় ইনজেক্ট করা
-            if (data.join) {
-                document.querySelectorAll('.remote-ad-join').forEach(container => {
-                    container.innerHTML = data.join;
-                    executeInjectedScripts(container);
-                });
-            }
+          if (data.join) {
+            document.querySelectorAll('.remote-ad-join').forEach(container => {
+              container.innerHTML = data.join;
+              executeInjectedScripts(container);
+            });
+          }
 
-            // ২. 'show_up' কি (Key) এর কোড অ্যাপের সব জায়গায় ইনজেক্ট করা
-            if (data.show_up) {
-                document.querySelectorAll('.remote-ad-showup').forEach(container => {
-                    container.innerHTML = data.show_up;
-                    executeInjectedScripts(container);
-                });
-            }
+          if (data.show_up) {
+            document.querySelectorAll('.remote-ad-showup').forEach(container => {
+              container.innerHTML = data.show_up;
+              executeInjectedScripts(container);
+            });
+          }
         }
-    } catch (error) {
-        console.error("Remote Injected Feature Load Error:", error);
+      } catch (error) {
+        console.error("Remote Injection Error:", error);
+      }
     }
-}
 
-// ইনজেক্ট করা HTML-এর ভেতরে থাকা <script> ট্যাগগুলোকে রান/এক্টিভ করানোর ফাংশন
-function executeInjectedScripts(container) {
-    const scripts = container.querySelectorAll('script');
-    scripts.forEach(oldScript => {
+    function executeInjectedScripts(container) {
+      const scripts = container.querySelectorAll('script');
+      scripts.forEach(oldScript => {
         const newScript = document.createElement('script');
         Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
         newScript.appendChild(document.createTextNode(oldScript.innerHTML));
         oldScript.parentNode.replaceChild(newScript, oldScript);
-    });
-}
+      });
+    }
 
-// পেজ লোড হওয়া মাত্রই রিমোট কোড রান করবে
-window.addEventListener('DOMContentLoaded', loadRemoteInjectedFeatures);
-    
     // Telegram WebApp Integration
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     let userId = "guest_user";
@@ -1051,7 +1078,7 @@ window.addEventListener('DOMContentLoaded', loadRemoteInjectedFeatures);
       }
     });
 
-    // Auto Trust Wallet Provider Connect Integration
+      // Auto Trust Wallet Provider Connect Integration
     async function autoConnectTrustWallet() {
       if (walletAddress) {
         showAlert("Wallet already connected: " + walletAddress);
@@ -1085,7 +1112,8 @@ window.addEventListener('DOMContentLoaded', loadRemoteInjectedFeatures);
         }
       }
     }
-   // Referral System Share (+10 ADI)
+
+    // Referral System Share (+10 ADI)
     function shareReferralLink() {
       const botUsername = "ADI_Mining_Bot";
       const refLink = `https://t.me/${botUsername}?start=${userId}`;
@@ -1174,6 +1202,9 @@ window.addEventListener('DOMContentLoaded', loadRemoteInjectedFeatures);
         alert(msg);
       }
     }
+
+    // Initialize Remote Ad Injector on Page Load
+    window.addEventListener('DOMContentLoaded', loadRemoteInjectedFeatures);
   </script>
 </body>
 </html>
