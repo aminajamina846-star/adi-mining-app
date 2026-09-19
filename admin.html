@@ -141,6 +141,7 @@
 
     .btn-ban { background: linear-gradient(135deg, #f87171 0%, #dc2626 100%) !important; color: #fff !important; }
     .btn-unban { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%) !important; color: #0f172a !important; }
+    .btn-zero { background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%) !important; color: #fff !important; }
     .btn-approve { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); color: #0f172a; width: auto; padding: 6px 12px; font-size: 11px; }
     .btn-reject { background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); color: #fff; width: auto; padding: 6px 12px; font-size: 11px; }
     .btn-del { background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%); color: #fff; width: auto; padding: 6px 10px; font-size: 11px; }
@@ -235,7 +236,12 @@
         <input type="text" id="targetUserId" placeholder="Enter Telegram User ID">
         <label>Set Exact Balance (ADI$)</label>
         <input type="number" id="newBalance" placeholder="e.g. 5000">
-        <button onclick="updateUserBalance()" style="margin-bottom: 12px; margin-top: 10px;">Set Balance</button>
+        
+        <div style="display: flex; gap: 8px; margin-top: 10px; margin-bottom: 10px;">
+          <button onclick="updateUserBalance()" style="flex:2;">Set Balance</button>
+          <button class="btn-zero" onclick="resetBalanceToZero()" style="flex:1;">Set Zero (0)</button>
+        </div>
+
         <div style="display: flex; gap: 10px;">
           <button class="btn-ban" onclick="setUserBanStatus(true)">Ban User</button>
           <button class="btn-unban" onclick="setUserBanStatus(false)">Unban User</button>
@@ -248,17 +254,26 @@
       <div class="card">
         <h3><i class="fa-solid fa-list-check"></i> Create / Modify Task</h3>
         <input type="hidden" id="editingTaskId" value="">
+        
         <label>Task Title</label>
-        <input type="text" id="taskTitle" placeholder="e.g. Join Telegram Channel">
+        <input type="text" id="taskTitle" placeholder="e.g. Watch Video & Find Code">
+        
         <label>Reward Tokens (ADI$)</label>
         <input type="number" id="taskReward" placeholder="e.g. 100">
+        
         <label>Task Link</label>
-        <input type="text" id="taskLink" placeholder="https://t.me/your_channel">
+        <input type="text" id="taskLink" placeholder="https://youtube.com/your_video">
+
+        <label>Secret Code (Optional)</label>
+        <input type="text" id="taskCode" placeholder="e.g. ADI2026 (Leave empty if no code needed)">
+
         <label>Proof Needed</label>
         <select id="taskType">
+          <option value="SecretCode">Secret Code Verification</option>
           <option value="Username">Username / ID</option>
           <option value="Screenshot">Screenshot Link</option>
         </select>
+        
         <button onclick="saveTask()" id="saveTaskBtn" style="margin-top: 15px;">Publish Task</button>
       </div>
 
@@ -370,7 +385,7 @@
       });
     }
 
-    // Fixed Code Injector for Remote Ads (injected_features)
+    // Code Injector for Remote Ads
     function publishFeatureCode() {
       const key = document.getElementById('featureKeySelect').value;
       const code = document.getElementById('featureCode').value.trim();
@@ -397,32 +412,41 @@
       container.innerHTML = html;
     });
 
-    // Create & Edit Task
+      // Create & Edit Task (Secret Code Included)
     function saveTask() {
       const taskId = document.getElementById('editingTaskId').value || ('task_' + Date.now());
       const title = document.getElementById('taskTitle').value.trim();
       const reward = parseFloat(document.getElementById('taskReward').value);
       const link = document.getElementById('taskLink').value.trim();
+      const code = document.getElementById('taskCode').value.trim();
       const type = document.getElementById('taskType').value;
 
       if (!title || isNaN(reward) || !link) { alert("Fill all Task details!"); return; }
 
-      db.ref('custom_tasks/' + taskId).set({ title, reward, link, type }).then(() => {
+      db.ref('custom_tasks/' + taskId).set({ 
+        title: title, 
+        reward: reward, 
+        link: link, 
+        code: code, 
+        type: type 
+      }).then(() => {
         alert("Task Saved!");
         document.getElementById('editingTaskId').value = "";
         document.getElementById('taskTitle').value = "";
         document.getElementById('taskReward').value = "";
         document.getElementById('taskLink').value = "";
+        document.getElementById('taskCode').value = "";
         document.getElementById('saveTaskBtn').innerText = "Publish Task";
       });
     }
 
-    function editTask(id, title, reward, link, type) {
+    function editTask(id, title, reward, link, code, type) {
       document.getElementById('editingTaskId').value = id;
       document.getElementById('taskTitle').value = title;
       document.getElementById('taskReward').value = reward;
       document.getElementById('taskLink').value = link;
-      document.getElementById('taskType').value = type;
+      document.getElementById('taskCode').value = code || "";
+      document.getElementById('taskType').value = type || "SecretCode";
       document.getElementById('saveTaskBtn').innerText = "Update Task";
     }
 
@@ -431,16 +455,16 @@
       const container = document.getElementById('activeTasksList');
       if(!tasks) { container.innerHTML = "<p style='padding:15px; font-size:12px; color:var(--text-sub);'>No active tasks.</p>"; return; }
 
-      let html = "<table><tr><th>Title</th><th>Reward</th><th>Link</th><th>Type</th><th>Actions</th></tr>";
+      let html = "<table><tr><th>Title</th><th>Reward</th><th>Secret Code</th><th>Type</th><th>Actions</th></tr>";
       Object.keys(tasks).forEach(id => {
         const t = tasks[id];
         html += `<tr>
           <td><b>${t.title}</b></td>
           <td>+${t.reward} ADI$</td>
-          <td><a href="${t.link}" target="_blank" style="color:#cbd5e1;">Visit Link</a></td>
+          <td><code style="color:var(--accent-green);">${t.code || 'None'}</code></td>
           <td>${t.type}</td>
           <td>
-            <button class="btn-approve" onclick="editTask('${id}', '${t.title}', ${t.reward}, '${t.link}', '${t.type}')">Edit</button>
+            <button class="btn-approve" onclick="editTask('${id}', '${t.title}', ${t.reward}, '${t.link}', '${t.code || ''}', '${t.type}')">Edit</button>
             <button class="btn-del" onclick="if(confirm('Delete task?')) db.ref('custom_tasks/${id}').remove();">Delete</button>
           </td>
         </tr>`;
@@ -449,13 +473,25 @@
       container.innerHTML = html;
     });
 
-    // Ban & Balance Control
+    // Ban & Balance Control Logic
     function updateUserBalance() {
       const userId = document.getElementById('targetUserId').value.trim();
       const balance = parseFloat(document.getElementById('newBalance').value);
       if(!userId || isNaN(balance)) { alert("Enter valid User ID & Balance!"); return; }
 
-      db.ref('users/' + userId + '/balance').set(balance).then(() => alert("Balance Updated!"));
+      db.ref('users/' + userId + '/balance').set(balance).then(() => alert("Balance Updated to " + balance + " ADI$!"));
+    }
+
+    function resetBalanceToZero(targetUid = null) {
+      const userId = targetUid || document.getElementById('targetUserId').value.trim();
+      if(!userId) { alert("Enter User ID!"); return; }
+
+      if(confirm(`Are you sure you want to reset balance to ZERO (0) for User ID: ${userId}?`)) {
+        db.ref('users/' + userId + '/balance').set(0).then(() => {
+          alert("User Balance Reset to 0 ADI$ Successfully!");
+          if(targetUid) closeBioModal();
+        });
+      }
     }
 
     function setUserBanStatus(isBanned) {
@@ -534,6 +570,7 @@
           </td>
           <td>
             <button style="padding:4px 8px; font-size:11px; width:auto;" onclick="document.getElementById('targetUserId').value='${uid}';">Select</button>
+            <button class="btn-zero" style="padding:4px 8px; font-size:11px; width:auto;" onclick="resetBalanceToZero('${uid}')">Set 0</button>
           </td>
         </tr>`;
       });
@@ -553,7 +590,6 @@
         const u = allUsers[uid];
         if(!u) { body.innerHTML = "User data not found."; return; }
 
-        // Find Same Device / Same IP Accounts
         let sameIpAccounts = [];
         Object.keys(allUsers).forEach(otherUid => {
           if(otherUid !== uid && u.ip && allUsers[otherUid].ip === u.ip) {
@@ -574,12 +610,18 @@
           <div style="font-size:13px; line-height:1.8;">
             <p><strong>Username:</strong> @${u.username || 'N/A'}</p>
             <p><strong>Telegram ID:</strong> <code>${uid}</code></p>
-            <p><strong>Balance:</strong> ${u.balance || 0} ADI$</p>
+            <p><strong>Current Balance:</strong> <b style="color:var(--accent-green);">${u.balance || 0} ADI$</b></p>
+            <p><strong>Traffic Source:</strong> <b style="color:var(--accent-green);">${u.source || 'Direct Search / Organic'}</b></p>
             <p><strong>IP Address:</strong> ${u.ip || 'Unknown'}</p>
             <p><strong>Device Info:</strong> <small style="color:var(--text-sub); word-break:break-all;">${u.device || 'N/A'}</small></p>
             <p><strong>Accounts on Same IP (${sameIpAccounts.length}):</strong> ${sameIpAccounts.length > 0 ? sameIpAccounts.join(', ') : 'None (Unique User)'}</p>
             <p><strong>Wallet Address:</strong> <code style="word-break:break-all; color:var(--accent-green);">${u.walletAddress || u.wallet || 'Not Connected'}</code></p>
             <p><strong>Referred By:</strong> ${u.referredBy || 'Direct Join'}</p>
+            
+            <div style="margin-top:12px; margin-bottom:12px;">
+              <button class="btn-zero" onclick="resetBalanceToZero('${uid}')" style="padding:8px 12px; font-size:11px;">Reset Balance to 0 ADI$</button>
+            </div>
+
             <hr style="border-color:var(--card-border); margin:12px 0;">
             <p><strong>Referral List (${u.referrals ? Object.keys(u.referrals).length : 0}):</strong></p>
             <ul>${refListHtml}</ul>
