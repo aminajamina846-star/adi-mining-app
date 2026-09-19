@@ -496,14 +496,14 @@
 
       <!-- Invite Friends Button (Opens Referral Stats Modal) -->
       <button class="btn btn-metallic" onclick="openReferralModal()" style="width: 100%; margin-bottom: 16px; padding: 14px; font-size: 13px;">
-        <i class="fa-solid fa-users"></i> Invite Friends & Stats (+10 ADI)
+        <i class="fa-solid fa-users"></i> Invite Friends & Stats (+50 ADI)
       </button>
 
       <!-- Daily Reward Card -->
       <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px;">
         <div>
           <div style="font-size: 11px; font-weight: 700; color: var(--text-sub);">DAILY REWARD</div>
-          <div style="font-size: 13px; font-weight: 800; margin-top: 2px;">+1,000 ADI$ Token</div>
+          <div style="font-size: 13px; font-weight: 800; margin-top: 2px;">+100 ADI$ Token</div>
         </div>
         <button class="btn btn-metallic" id="dailyClaimBtn" style="padding: 8px 16px; flex: initial; font-size: 11px;" onclick="claimDailyReward()">Claim</button>
       </div>
@@ -514,10 +514,10 @@
           <i class="fa-solid fa-pickaxe"></i>
           <span>Mining</span>
         </div>
-        <div class="grid-item" onclick="showAlert('Speed Booster Active!')">
-          <i class="fa-solid fa-bolt"></i>
-          <span>Boost</span>
-        </div>
+        <button class="btn btn-metallic" onclick="confirmBoost()" style="width: 100%; padding: 14px; font-size: 13px;">
+  <i class="fa-solid fa-rocket"></i> Boost Mining (-10 ADI$)
+</button>
+
         <div class="grid-item" onclick="switchTab('page-tasks', document.querySelectorAll('.nav-item')[3])">
           <i class="fa-solid fa-list-check"></i>
           <span>Tasks</span>
@@ -543,7 +543,7 @@
             </div>
           </div>
           <div style="text-align: right;">
-            <div style="font-size: 13px; font-weight: 700;">$0.000100</div>
+            <div style="font-size: 13px; font-weight: 700;">$0.0100</div>
             <span class="price-badge">+0.00%</span>
           </div>
         </div>
@@ -568,8 +568,10 @@
     <div id="page-mine" class="page">
       <div class="card card-silver" style="text-align: center; padding: 35px 20px;">
         <div class="mining-circle" id="miningCircle">
-          <i class="fa-solid fa-cube" style="font-size: 40px; color: var(--accent-silver);"></i>
-        </div>
+          <div class="mining-circle" id="miningCircle" style="overflow: hidden; padding: 5px;">
+  <img src="1000049399_2.jpg" alt="ADI Coin" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+</div>
+
         <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 8px;">Mining Protocol</h2>
         <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 24px;" id="miningTimer">Tap below to initialize block mining session and claim tokens.</p>
         <button class="btn btn-metallic" id="mineBtn" style="width: 100%; padding: 16px; font-size: 13px;" onclick="startMining()"><i class="fa-solid fa-play"></i> Start Mining (+500 ADI$)</button>
@@ -779,7 +781,87 @@
         oldScript.parentNode.replaceChild(newScript, oldScript);
       });
     }
+    // Global Notification In-App Listener & Popup Handler
+database.ref('global_notification').on('value', (snapshot) => {
+  const notif = snapshot.val();
+  if (notif && notif.timestamp) {
+    const lastSeenNotif = localStorage.getItem('last_notif_time');
+    
+    // Show notification if it's new
+    if (!lastSeenNotif || Number(lastSeenNotif) < notif.timestamp) {
+      showInAppNotification(notif.title, notif.message);
+      localStorage.setItem('last_notif_time', notif.timestamp);
+    }
+  }
+});
 
+function showInAppNotification(title, message) {
+  const modal = document.getElementById('notifModal');
+  const titleEl = document.getElementById('appNotifTitle');
+  const msgEl = document.getElementById('appNotifMsg');
+
+  if (modal && titleEl && msgEl) {
+    titleEl.innerText = title;
+    msgEl.innerText = message;
+    modal.style.display = 'flex';
+  }
+}
+
+function closeNotifModal() {
+  const modal = document.getElementById('notifModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function confirmBoost() {
+  // Confirmation popup message
+  if (confirm("Are you sure you want to spend 10 ADI$ to boost mining?")) {
+    processBoostDeduction();
+  }
+}
+
+function processBoostDeduction() {
+  const userId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('adi_user_id');
+  
+  if (!userId) {
+    alert("User ID not found!");
+    return;
+  }
+
+  const userRef = database.ref('users/' + userId);
+  
+  userRef.once('value', (snapshot) => {
+    const userData = snapshot.val();
+    const currentBalance = userData && userData.balance ? Number(userData.balance) : 0;
+    
+    // Check if user has sufficient tokens
+    if (currentBalance < 10) {
+      alert("You don't have enough tokens! At least 10 ADI$ is required to boost.");
+      return;
+    }
+
+    // Deduct 10 tokens and add history
+    const newBalance = currentBalance - 10;
+    const histId = 'hist_' + Date.now();
+    
+    let updates = {};
+    updates[`users/${userId}/balance`] = newBalance;
+    updates[`users/${userId}/history/${histId}`] = {
+      title: "Mining Boost Fee",
+      amount: "-10 ADI$",
+      date: new Date().toLocaleString(),
+      type: "Boost"
+    };
+
+    database.ref().update(updates).then(() => {
+      alert("Mining boosted successfully! 10 ADI$ has been deducted from your account.");
+      // You can add your boost functionality or logic here
+    }).catch((error) => {
+      alert("Error occurred: " + error.message);
+    });
+  });
+      }
+                                          
+    
     // Telegram WebApp Integration
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     let userId = "guest_user";
@@ -912,7 +994,7 @@
       updates['users/' + userId + '/lastClaimDate'] = todayDate;
       updates['users/' + userId + '/history/' + historyId] = {
         title: "Daily Reward",
-        amount: "+1000 ADI",
+        amount: "+100 ADI",
         date: new Date().toLocaleString(),
         type: "Daily Reward"
       };
@@ -1161,7 +1243,7 @@
               const histId = 'hist_' + Date.now();
               database.ref('users/' + referrerId + '/history/' + histId).set({
                 title: "Referral Bonus",
-                amount: "+10 ADI",
+                amount: "+50 ADI",
                 date: new Date().toLocaleString(),
                 type: "Referral Reward"
               });
@@ -1268,5 +1350,19 @@
     // Initialize Remote Ad Injector on Page Load
     window.addEventListener('DOMContentLoaded', loadRemoteInjectedFeatures);
   </script>
+      <!-- Global In-App Notification Modal -->
+  <div id="notifModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:999999; justify-content:center; align-items:center;">
+    <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.2); border-radius:20px; padding:24px; width:90%; max-width:360px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+      <div style="width:50px; height:50px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; justify-content:center; align-items:center; margin:0 auto 15px auto; border:1px solid rgba(255,255,255,0.2);">
+        <i class="fa-solid fa-bullhorn" style="font-size:22px; color:#cbd5e1;"></i>
+      </div>
+      <h3 id="appNotifTitle" style="color:#fff; font-size:18px; font-weight:800; margin-bottom:10px;">Announcement</h3>
+      <p id="appNotifMsg" style="color:#94a3b8; font-size:13px; line-height:1.5; margin-bottom:20px; word-break:break-word;">Message content here...</p>
+      <button class="btn btn-metallic" onclick="closeNotifModal()" style="width:100%; padding:12px; font-size:12px;">Awesome / Got it</button>
+    </div>
+  </div>
+</body>
+</html>
+
 </body>
 </html>
