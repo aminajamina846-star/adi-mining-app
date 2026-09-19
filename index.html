@@ -20,6 +20,42 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
+    .history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background-color: #1a1a1a;
+  border-radius: 10px;
+  border: 1px solid #282828;
+}
+
+.history-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.history-date {
+  font-size: 10px;
+  color: #888888;
+}
+
+.history-amount {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.amount-plus { color: #4caf50; } /* Green for earnings */
+.amount-minus { color: #f44336; } /* Red for rejected/spent */
+.amount-neutral { color: #ff9800; } /* Orange for pending */
+    
     :root {
       --bg-color: #000000;
       --card-bg: rgba(20, 20, 20, 0.85);
