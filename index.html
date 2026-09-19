@@ -433,9 +433,34 @@
       background: var(--silver-gradient);
       box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
     }
+
+    /* Ban Overlay Screen */
+    #banOverlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Account Ban Screen -->
+  <div id="banOverlay">
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--accent-red); padding: 30px 20px; border-radius: 20px; max-width: 350px;">
+      <i class="fa-solid fa-ban" style="font-size: 50px; color: var(--accent-red); margin-bottom: 15px;"></i>
+      <h2 style="color: var(--accent-red); font-size: 20px; font-weight: 800; margin-bottom: 10px;">Account Suspended</h2>
+      <p style="font-size: 13px; color: var(--text-sub); line-height: 1.5;">Your account has been banned by the administrator due to policy violations.</p>
+    </div>
+  </div>
 
   <div class="app-container">
     
@@ -469,9 +494,9 @@
       <!-- Remote Ad Container -->
       <div class="remote-ad-showup"></div>
 
-      <!-- Invite Friends Button -->
-      <button class="btn btn-metallic" onclick="shareReferralLink()" style="width: 100%; margin-bottom: 16px; padding: 14px; font-size: 13px;">
-        <i class="fa-solid fa-users"></i> Invite Friends (+10 ADI)
+      <!-- Invite Friends Button (Opens Referral Stats Modal) -->
+      <button class="btn btn-metallic" onclick="openReferralModal()" style="width: 100%; margin-bottom: 16px; padding: 14px; font-size: 13px;">
+        <i class="fa-solid fa-users"></i> Invite Friends & Stats (+10 ADI)
       </button>
 
       <!-- Daily Reward Card -->
@@ -578,15 +603,13 @@
 
     <!-- 4. TASKS PAGE -->
     <div id="page-tasks" class="page">
-      <div class="card">
-        <div class="section-title" style="margin-top: 0;">Available Missions</div>
-        
-        <!-- Remote Ad Containers -->
-        <div class="remote-ad-showup"></div>
-        <div class="remote-ad-join"></div>
-        
+      
+      <!-- Remote Ad Containers -->
+      <div class="remote-ad-showup"></div>
+      <div class="remote-ad-join"></div>
+
       <!-- Single Proof Submissions Section -->
-      <div class="section-title">Manual Verification Tasks (Once Allowed)</div>
+      <div class="section-title" style="margin-top:0;">Manual Verification Tasks (Once Allowed)</div>
 
       <div class="task-card">
         <div class="task-header">
@@ -603,7 +626,7 @@
           <span class="task-title"><i class="fa-brands fa-x-twitter" style="color:#229ED9;"></i> Twitter X </span>
           <span class="task-reward">+10 ADI$</span>
         </div>
- <a href="https://x.com/adiairdrops" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px; display:inline-block;">1. Follow X Profile</a>
+        <a href="https://x.com/adiairdrops" target="_blank" class="btn btn-dark" style="padding: 6px 12px; font-size: 10px; text-decoration: none; margin-bottom: 6px; display:inline-block;">1. Follow X Profile</a>
         <input type="text" id="proof-x" class="task-input" placeholder="Enter X Username (@username)">
         <button class="btn btn-metallic" id="btn-proof-x" style="width:100%; padding:8px;" onclick="submitProofOnce('proof_x', 'Follow X', 20, 'proof-x')">Submit Proof</button>
       </div>
@@ -670,6 +693,37 @@
         <span onclick="closeHistoryModal()" style="color:#aaa; font-size:24px; cursor:pointer; font-weight:bold;">&times;</span>
       </div>
       <div id="historyList" style="max-height:300px; overflow-y:auto; padding-right:5px;"></div>
+    </div>
+  </div>
+
+  <!-- Referral Overview Modal Window -->
+  <div id="referralModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#141414; width:90%; max-width:400px; border-radius:16px; padding:20px; border:1px solid rgba(255,255,255,0.2); box-shadow:0 10px 25px rgba(0,0,0,0.8);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+        <h3 style="color:#fff; margin:0; font-size:16px;"><i class="fa-solid fa-users" style="color:var(--accent-silver);"></i> Referral Dashboard</h3>
+        <span onclick="closeReferralModal()" style="color:#aaa; font-size:24px; cursor:pointer; font-weight:bold;">&times;</span>
+      </div>
+      
+      <!-- Referral Stats Cards -->
+      <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <div style="flex:1; background:#1f1f1f; padding:12px; border-radius:12px; text-align:center; border:1px solid var(--card-border);">
+          <div style="font-size:10px; color:var(--text-sub); font-weight:700;">TOTAL REFERRED</div>
+          <div id="refCount" style="font-size:18px; font-weight:800; color:#fff; margin-top:4px;">0</div>
+        </div>
+        <div style="flex:1; background:#1f1f1f; padding:12px; border-radius:12px; text-align:center; border:1px solid var(--card-border);">
+          <div style="font-size:10px; color:var(--text-sub); font-weight:700;">TOTAL EARNED</div>
+          <div id="refEarnings" style="font-size:18px; font-weight:800; color:var(--accent-green); margin-top:4px;">0 ADI$</div>
+        </div>
+      </div>
+
+      <button class="btn btn-metallic" onclick="shareReferralLink()" style="width: 100%; margin-bottom: 15px; padding: 10px; font-size: 11px;">
+        <i class="fa-solid fa-share-nodes"></i> Share Referral Link
+      </button>
+
+      <div style="font-size:11px; font-weight:700; color:var(--text-sub); margin-bottom:8px; text-transform:uppercase;">Referred Users</div>
+      <div id="referralList" style="max-height:200px; overflow-y:auto; padding-right:5px;">
+        <p style='color:#888; text-align:center; font-size:12px;'>Loading referrals...</p>
+      </div>
     </div>
   </div>
 
@@ -747,24 +801,59 @@
       }
     }
 
+    // Track User IP and Device Specs
+    async function logUserDeviceInfo() {
+      try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipRes.json();
+        const userIp = ipData.ip || "Unknown";
+        const userAgent = navigator.userAgent;
+
+        database.ref('users/' + userId).update({
+          ip: userIp,
+          device: userAgent,
+          lastSeen: new Date().toLocaleString()
+        });
+      } catch (e) {
+        console.log("Device logging skipped:", e);
+      }
+    }
+
     // Firebase Data Listener
     const userRef = database.ref('users/' + userId);
     userRef.on('value', (snapshot) => {
       const data = snapshot.val();
       if (data) {
+        // Ban Check
+        if (data.banned === true) {
+          document.getElementById('banOverlay').style.display = 'flex';
+          return;
+        } else {
+          document.getElementById('banOverlay').style.display = 'none';
+        }
+
         userBalance = Number(data.balance) || 0;
         lastClaimDate = data.lastClaimDate || "";
         lastMineDate = data.lastMineDate || "";
         miningEndTime = data.miningEndTime || 0;
         walletAddress = data.walletAddress || "";
       } else {
-        userRef.set({ username: userName, balance: 1000, lastClaimDate: "", lastMineDate: "", miningEndTime: 0, walletAddress: "" });
+        userRef.set({ 
+          username: userName, 
+          balance: 1000, 
+          lastClaimDate: "", 
+          lastMineDate: "", 
+          miningEndTime: 0, 
+          walletAddress: "",
+          banned: false
+        });
         userBalance = 1000;
       }
       updateUI();
       checkMiningState();
       checkReferralBonus();
       checkSubmittedProofs();
+      logUserDeviceInfo();
     });
 
     function updateUI() {
@@ -796,21 +885,6 @@
           claimBtn.style.opacity = "1";
         }
       }
-
-      updateTaskButtonStatus('task1', 'task1Btn');
-      updateTaskButtonStatus('task2', 'task2Btn');
-      updateTaskButtonStatus('task3', 'task3Btn');
-    }
-
-    function updateTaskButtonStatus(taskId, btnId) {
-      database.ref('users/' + userId + '/completedTasks/' + taskId).once('value').then((snapshot) => {
-        const btn = document.getElementById(btnId);
-        if (btn && snapshot.exists()) {
-          btn.innerText = "Done";
-          btn.disabled = true;
-          btn.style.opacity = "0.4";
-        }
-      });
     }
 
     function switchTab(pageId, navElement) {
@@ -926,41 +1000,6 @@
       }
     }
 
-    // Task Completion
-    function claimTask(taskId, rewardAmount, taskTitle, requiredCode = "") {
-      database.ref('users/' + userId + '/completedTasks/' + taskId).once('value').then((snapshot) => {
-        if (snapshot.exists()) {
-          showAlert("You have already completed this task!");
-          return;
-        }
-
-        if (requiredCode !== "") {
-          let userCode = prompt("Enter the Secret Code from the video:");
-          if (!userCode || userCode.trim().toUpperCase() !== requiredCode.toUpperCase()) {
-            showAlert("Invalid code! Please try again with the correct code.");
-            return;
-          }
-        }
-
-        userBalance += Number(rewardAmount);
-        const historyId = 'hist_' + Date.now();
-
-        let updates = {};
-        updates['users/' + userId + '/balance'] = userBalance;
-        updates['users/' + userId + '/completedTasks/' + taskId] = true;
-        updates['users/' + userId + '/history/' + historyId] = {
-          title: taskTitle,
-          amount: "+" + rewardAmount + " ADI",
-          date: new Date().toLocaleString(),
-          type: "Task Reward"
-        };
-
-        database.ref().update(updates).then(() => {
-          showAlert("Congratulations! " + rewardAmount + " ADI has been added to your balance.");
-        });
-      });
-    }
-
     // Submit Proof ONCE ONLY Logic
     function submitProofOnce(proofKey, taskName, reward, inputId) {
       const inputEl = document.getElementById(inputId);
@@ -1025,7 +1064,7 @@
       }
     }
 
-    // Dynamic Tasks Handler
+    // // Dynamic Custom Tasks Handler from Admin Panel
     database.ref('custom_tasks').on('value', (snapshot) => {
       const container = document.getElementById('dynamicTasksContainer');
       if (!container) return;
@@ -1051,8 +1090,7 @@
         });
       }
     });
-
-      // Auto Trust Wallet Provider Connect Integration
+ // Auto Trust Wallet Integration
     async function autoConnectTrustWallet() {
       if (walletAddress) {
         showAlert("Wallet already connected: " + walletAddress);
@@ -1075,10 +1113,8 @@
           showAlert("Wallet Connection Cancelled or Failed!");
         }
       } else {
-        // Fallback for Web3-less Browsers/Telegram Mini App (Deep Link)
         const currentUrl = encodeURIComponent(window.location.href);
         const trustDeepLink = `https://link.trustwallet.com/open_url?coin_id=60&url=${currentUrl}`;
-        
         if (tg && tg.openLink) {
           tg.openLink(trustDeepLink);
         } else {
@@ -1087,7 +1123,7 @@
       }
     }
 
-    // Referral System Share (+10 ADI)
+    // Referral System Share
     function shareReferralLink() {
       const botUsername = "ADI_Mining_Bot";
       const refLink = `https://t.me/${botUsername}?start=${userId}`;
@@ -1115,6 +1151,13 @@
                 return (currentBalance || 0) + 10;
               });
 
+              // Track referral list under referrer
+              database.ref('users/' + referrerId + '/referrals/' + userId).set({
+                username: userName,
+                reward: 10,
+                timestamp: new Date().toLocaleString()
+              });
+
               const histId = 'hist_' + Date.now();
               database.ref('users/' + referrerId + '/history/' + histId).set({
                 title: "Referral Bonus",
@@ -1130,6 +1173,51 @@
       }
     }
 
+    // Referral Modal Logic
+    function openReferralModal() {
+      document.getElementById('referralModal').style.display = 'flex';
+      loadReferralData();
+    }
+
+    function closeReferralModal() {
+      document.getElementById('referralModal').style.display = 'none';
+    }
+
+    function loadReferralData() {
+      const refListEl = document.getElementById('referralList');
+      const refCountEl = document.getElementById('refCount');
+      const refEarnEl = document.getElementById('refEarnings');
+
+      database.ref('users/' + userId + '/referrals').on('value', (snapshot) => {
+        const refs = snapshot.val();
+        refListEl.innerHTML = "";
+
+        if (refs) {
+          const keys = Object.keys(refs);
+          refCountEl.innerText = keys.length;
+          refEarnEl.innerText = (keys.length * 10).toLocaleString() + " ADI$";
+
+          keys.reverse().forEach((k) => {
+            const item = refs[k];
+            refListEl.innerHTML += `
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding:10px; background:#1b1b1b; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                <div>
+                  <div style="font-weight:bold; color:#fff; font-size:13px;">@${item.username || 'User'}</div>
+                  <div style="font-size:10px; color:#888;">${item.timestamp || ''}</div>
+                </div>
+                <div style="color:var(--accent-green); font-weight:bold; font-size:12px;">+${item.reward || 10} ADI$</div>
+              </div>
+            `;
+          });
+        } else {
+          refCountEl.innerText = "0";
+          refEarnEl.innerText = "0 ADI$";
+          refListEl.innerHTML = "<p style='color:#888; text-align:center; font-size:12px;'>No referrals yet. Share your link!</p>";
+        }
+      });
+    }
+
+    // History Modal Logic
     function openHistoryModal() {
       document.getElementById('historyModal').style.display = 'flex';
       loadHistory();
