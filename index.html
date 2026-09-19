@@ -20,30 +20,46 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
-    <!-- BOTTOM NAVIGATION BAR -->
-<div class="bottom-nav">
-  <div class="nav-item active" onclick="switchTab('page-home', this)">
-    <i class="fa-solid fa-house"></i>
-    <span>Home</span>
-  </div>
-  <div class="nav-item" onclick="switchTab('page-mine', this)">
-    <i class="fa-solid fa-pickaxe"></i>
-    <span>Mine</span>
-  </div>
-  <div class="nav-item" onclick="switchTab('page-markets', this)">
-    <i class="fa-solid fa-chart-line"></i>
-    <span>Markets</span>
-  </div>
-  <div class="nav-item" onclick="switchTab('page-tasks', this)">
-    <i class="fa-solid fa-list-check"></i>
-    <span>Tasks</span>
-  </div>
-  <div class="nav-item" onclick="switchTab('page-profile', this)">
-    <i class="fa-solid fa-user"></i>
-    <span>Profile</span>
-  </div>
-</div>
-    
+    /* FORCE VISIBLE BOTTOM NAV */
+body .bottom-nav {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  max-width: 420px !important;
+  height: 65px !important;
+  background-color: #121212 !important;
+  border-top: 1px solid #282828 !important;
+  display: flex !important;
+  justify-content: space-around !important;
+  align-items: center !important;
+  z-index: 999999 !important;
+  box-sizing: border-box !important;
+}
+
+body .bottom-nav .nav-item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #888888 !important;
+  font-size: 11px !important;
+  cursor: pointer !important;
+  flex: 1 !important;
+}
+
+body .bottom-nav .nav-item i {
+  font-size: 18px !important;
+  margin-bottom: 3px !important;
+}
+
+body .bottom-nav .nav-item.active {
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
     /* AD CARD STYLING */
 .ad-card-box {
   width: 100%;
@@ -1703,7 +1719,7 @@ loadLeaderboard();
     // Initialize Remote Ad Injector on Page Load
     window.addEventListener('DOMContentLoaded', loadRemoteInjectedFeatures);
   </script>
-  <!-- BOTTOM NAVIGATION BAR -->
+  <!-- FIXED BOTTOM NAVIGATION BAR -->
 <div class="bottom-nav">
   <div class="nav-item active" onclick="switchTab('page-home', this)">
     <i class="fa-solid fa-house"></i>
@@ -1727,19 +1743,5 @@ loadLeaderboard();
   </div>
 </div>
   
-      <!-- Global In-App Notification Modal -->
-  <div id="notifModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:999999; justify-content:center; align-items:center;">
-    <div style="background:#0f172a; border:1px solid rgba(255,255,255,0.2); border-radius:20px; padding:24px; width:90%; max-width:360px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
-      <div style="width:50px; height:50px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; justify-content:center; align-items:center; margin:0 auto 15px auto; border:1px solid rgba(255,255,255,0.2);">
-        <i class="fa-solid fa-bullhorn" style="font-size:22px; color:#cbd5e1;"></i>
-      </div>
-      <h3 id="appNotifTitle" style="color:#fff; font-size:18px; font-weight:800; margin-bottom:10px;">Announcement</h3>
-      <p id="appNotifMsg" style="color:#94a3b8; font-size:13px; line-height:1.5; margin-bottom:20px; word-break:break-word;">Message content here...</p>
-      <button class="btn btn-metallic" onclick="closeNotifModal()" style="width:100%; padding:12px; font-size:12px;">Awesome / Got it</button>
-    </div>
-  </div>
-</body>
-</html>
-
 </body>
 </html>
