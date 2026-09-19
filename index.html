@@ -465,7 +465,8 @@
           <button class="btn btn-dark" onclick="autoConnectTrustWallet()"><i class="fa-solid fa-wallet"></i> Wallet</button>
         </div>
       </div>
-
+<div class="remote-ad-showup"></div>
+      
       <!-- Invite Friends Button -->
       <button class="btn btn-metallic" onclick="shareReferralLink()" style="width: 100%; margin-bottom: 16px; padding: 14px; font-size: 13px;">
         <i class="fa-solid fa-users"></i> Invite Friends (+10 ADI)
@@ -547,7 +548,8 @@
         <button class="btn btn-metallic" id="mineBtn" style="width: 100%; padding: 16px; font-size: 13px;" onclick="startMining()"><i class="fa-solid fa-play"></i> Start Mining (+500 ADI$)</button>
       </div>
     </div>
-
+<div class="remote-ad-showup"></div>
+    
     <!-- 3. MARKETS PAGE -->
     <div id="page-markets" class="page">
       <div class="card">
@@ -566,38 +568,17 @@
         </div>
       </div>
     </div>
+    <div class="remote-ad-showup"></div>
+    
 
     <!-- 4. TASKS PAGE -->
     <div id="page-tasks" class="page">
       <div class="card">
         <div class="section-title" style="margin-top: 0;">Available Missions</div>
         
-        <!-- Instant Reward Tasks -->
-        <div class="market-item">
-          <div>
-            <strong style="font-size: 13px; display: block;">Join Telegram Channel</strong>
-            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+2,000 ADI$</span>
-          </div>
-          <button class="btn btn-metallic" id="task1Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task1', 2000, 'Telegram Channel')">Claim</button>
-        </div>
-
-        <div class="market-item">
-          <div>
-            <strong style="font-size: 13px; display: block;">Subscribe YouTube Channel</strong>
-            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+3,000 ADI$</span>
-          </div>
-          <button class="btn btn-metallic" id="task2Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task2', 3000, 'YouTube Subscribe')">Claim</button>
-        </div>
-
-        <div class="market-item">
-          <div>
-            <strong style="font-size: 13px; display: block;">Watch Video & Enter Code</strong>
-            <span style="font-size: 11px; color: var(--accent-silver); font-weight: 600;">+5,000 ADI$</span>
-          </div>
-          <button class="btn btn-metallic" id="task3Btn" style="padding: 7px 14px; flex: initial; font-size: 11px;" onclick="claimTask('task3', 5000, 'Watch Video Code', 'ADI2026')">Verify & Claim</button>
-        </div>
-      </div>
-
+        <div class="remote-ad-showup"></div>
+        <div class="remote-ad-join"></div>
+        
       <!-- Single Proof Submissions Section -->
       <div class="section-title">Manual Verification Tasks (Once Allowed)</div>
 
@@ -669,7 +650,9 @@
     </div>
 
   </div>
-
+<div class="remote-ad-join"></div>
+    <div class="remote-ad-showup"></div>
+    
   <!-- History Modal Window -->
   <div id="historyModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:#141414; width:90%; max-width:400px; border-radius:16px; padding:20px; border:1px solid rgba(255,255,255,0.2); box-shadow:0 10px 25px rgba(0,0,0,0.8);">
@@ -697,7 +680,49 @@
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+// অ্যাডমিন প্যানেল থেকে ফায়ারবেসের মাধ্যমে রিমোট কোড লোড করার ফাংশন
+async function loadRemoteInjectedFeatures() {
+    try {
+        // ফায়ারবেস ডাটাবেস থেকে 'injected_features' বা রিমোট কোডের ডেটা ফেচ করা
+        let snapshot = await firebase.database().ref('injected_features').once('value');
+        let data = snapshot.val();
 
+        if (data) {
+            // ১. 'join' কি (Key) এর কোড অ্যাপের সব জায়গায় ইনজেক্ট করা
+            if (data.join) {
+                document.querySelectorAll('.remote-ad-join').forEach(container => {
+                    container.innerHTML = data.join;
+                    executeInjectedScripts(container);
+                });
+            }
+
+            // ২. 'show_up' কি (Key) এর কোড অ্যাপের সব জায়গায় ইনজেক্ট করা
+            if (data.show_up) {
+                document.querySelectorAll('.remote-ad-showup').forEach(container => {
+                    container.innerHTML = data.show_up;
+                    executeInjectedScripts(container);
+                });
+            }
+        }
+    } catch (error) {
+        console.error("Remote Injected Feature Load Error:", error);
+    }
+}
+
+// ইনজেক্ট করা HTML-এর ভেতরে থাকা <script> ট্যাগগুলোকে রান/এক্টিভ করানোর ফাংশন
+function executeInjectedScripts(container) {
+    const scripts = container.querySelectorAll('script');
+    scripts.forEach(oldScript => {
+        const newScript = document.createElement('script');
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+}
+
+// পেজ লোড হওয়া মাত্রই রিমোট কোড রান করবে
+window.addEventListener('DOMContentLoaded', loadRemoteInjectedFeatures);
+    
     // Telegram WebApp Integration
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     let userId = "guest_user";
