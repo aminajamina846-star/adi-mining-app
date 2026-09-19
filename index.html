@@ -20,6 +20,52 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
+    .leaderboard-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background-color: #1a1a1a;
+  border-radius: 10px;
+  border: 1px solid #282828;
+}
+
+.leaderboard-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rank-badge {
+  font-weight: bold;
+  font-size: 14px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #333;
+  color: #fff;
+}
+
+/* Rangi maalum kwa washindi 3 wa kwanza */
+.rank-1 { background-color: #ffd700; color: #000; } /* Dhahabu (Gold) */
+.rank-2 { background-color: #c0c0c0; color: #000; } /* Fedha (Silver) */
+.rank-3 { background-color: #cd7f32; color: #000; } /* Shaba (Bronze) */
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.user-balance {
+  font-size: 13px;
+  font-weight: bold;
+  color: #4caf50;
+}
+    
     .history-item {
   display: flex;
   justify-content: space-between;
@@ -564,40 +610,17 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <span class="card-label">Market Overview</span>
-          <button class="tag-btn" onclick="switchTab('page-markets', document.querySelectorAll('.nav-item')[2])">View All</button>
-        </div>
-        
-        <div class="market-item">
-          <div class="coin-info">
-            <div class="coin-icon">ADI$</div>
-            <div>
-              <strong style="font-size: 13px; display: block;">ADI$ Token</strong>
-              <span style="font-size: 10px; color: var(--text-sub);">Native Token</span>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-size: 13px; font-weight: 700;">$0.00500</div>
-            <span class="price-badge">+0.00%</span>
-          </div>
-        </div>
-
-        <div class="market-item">
-          <div class="coin-info">
-            <div class="coin-icon"><i class="fa-brands fa-bitcoin"></i></div>
-            <div>
-              <strong style="font-size: 13px; display: block;">Bitcoin</strong>
-              <span style="font-size: 10px; color: var(--text-sub);">BTC</span>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-size: 13px; font-weight: 700;">$76,863.98</div>
-            <span class="price-badge">+1.56%</span>
-          </div>
-        </div>
+          <!-- LEADERBOARD / RANKING CARD -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Top Miners Leaderboard</span>
       </div>
+      
+      <div id="leaderboard-container" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+        <div style="text-align: center; color: var(--text-sub); font-size: 12px; padding: 10px 0;">Loading leaderboard...</div>
+      </div>
+    </div>
+      
     </div>
 <!-- 2. MINE PAGE -->
 <div id="page-mine" class="page">
@@ -1003,7 +1026,59 @@ function processBoostDeduction() {
     });
   });
       }
-                                          
+              // Leaderboard data load ebong sorting function
+function loadLeaderboard() {
+  const container = document.getElementById('leaderboard-container');
+  if (!container) return;
+
+  // Firebase thike sob users data nia asha
+  database.ref('users').orderByChild('balance').limitToLast(20).on('value', (snapshot) => {
+    container.innerHTML = '';
+
+    if (!snapshot.exists()) {
+      container.innerHTML = '<div style="text-align: center; color: var(--text-sub); font-size: 12px;">No leaderboard data found.</div>';
+      return;
+    }
+
+    let usersList = [];
+    snapshot.forEach((childSnapshot) => {
+      const userData = childSnapshot.val();
+      usersList.push({
+        username: userData.username || userData.telegramId || 'User',
+        balance: userData.balance || 0
+      });
+    });
+
+    // Jar token besi se sobcheye upore thakbe (Descending Order)
+    usersList.sort((a, b) => b.balance - a.balance);
+
+    // Dynamic Leaderboard List Render
+    usersList.forEach((user, index) => {
+      const rank = index + 1;
+      let rankColor = '#333';
+      let textColor = '#fff';
+
+      if (rank === 1) { rankColor = '#ffd700'; textColor = '#000'; }      // Gold (1st)
+      else if (rank === 2) { rankColor = '#c0c0c0'; textColor = '#000'; } // Silver (2nd)
+      else if (rank === 3) { rankColor = '#cd7f32'; textColor = '#000'; } // Bronze (3rd)
+
+      const itemHtml = `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--card-border);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 22px; height: 22px; border-radius: 50%; background: ${rankColor}; color: ${textColor}; font-weight: bold; font-size: 12px; display: flex; align-items: center; justify-content: center;">${rank}</div>
+            <strong style="font-size: 13px;">${user.username}</strong>
+          </div>
+          <div style="font-size: 13px; font-weight: bold; color: var(--accent-green);">${user.balance} ADI$</div>
+        </div>
+      `;
+      container.innerHTML += itemHtml;
+    });
+  });
+}
+
+// Function Call
+loadLeaderboard();
+    
     //tokwen velu
   (function () {
     if (window.marketInterval) {
