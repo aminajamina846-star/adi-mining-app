@@ -796,7 +796,63 @@
     };
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
+    // User Activity History Loader Function
+    function loadUserHistory(userId) {
+      const container = document.getElementById('history-list-container');
+      if (!container) return;
 
+      const historyRef = database.ref('users/' + userId + '/history').limitToLast(15);
+
+      historyRef.on('value', (snapshot) => {
+        container.innerHTML = '';
+
+        if (!snapshot.exists()) {
+          container.innerHTML = '<div style="text-align: center; color: #777; font-size: 12px; padding: 10px 0;">No history found yet.</div>';
+          return;
+        }
+
+        let historyArray = [];
+        snapshot.forEach((childSnapshot) => {
+          historyArray.push(childSnapshot.val());
+        });
+
+        historyArray.reverse();
+
+        historyArray.forEach((item) => {
+          const date = item.timestamp ? new Date(item.timestamp).toLocaleDateString() + ' ' + new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
+          
+          let amountClass = 'amount-plus';
+          let displayAmount = '+' + item.amount + ' ADI$';
+
+          if (item.status === 'rejected') {
+            amountClass = 'amount-minus';
+            displayAmount = 'Rejected';
+          } else if (item.amount <= 0) {
+            amountClass = 'amount-neutral';
+            displayAmount = item.amount + ' ADI$';
+          }
+
+          const itemHtml = `
+            <div class="history-item">
+              <div class="history-info">
+                <span class="history-title">${item.title}</span>
+                <span class="history-date">${date}</span>
+              </div>
+              <div class="history-amount ${amountClass}">${displayAmount}</div>
+            </div>
+          `;
+          container.innerHTML += itemHtml;
+        });
+      });
+    }
+
+    // Dynamic History Auto Load
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+      loadUserHistory(window.Telegram.WebApp.initDataUnsafe.user.id);
+    } else {
+      loadUserHistory("8564284672");
+    }
+    
     // Remote Ad Injection System
     async function loadRemoteInjectedFeatures() {
       try {
