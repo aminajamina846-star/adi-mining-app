@@ -927,14 +927,14 @@ function processBoostDeduction() {
       } else {
         userRef.set({ 
           username: userName, 
-          balance: 1000, 
+          balance: 0, 
           lastClaimDate: "", 
           lastMineDate: "", 
           miningEndTime: 0, 
           walletAddress: "",
           banned: false
         });
-        userBalance = 1000;
+        userBalance = 0;
       }
       updateUI();
       checkMiningState();
@@ -1005,7 +1005,7 @@ function processBoostDeduction() {
       };
 
       database.ref().update(updates).then(() => {
-        showAlert("Congratulations! Claimed 1,000 ADI$");
+        showAlert("Congratulations! Claimed 100 ADI$");
       });
     }
 
@@ -1017,9 +1017,10 @@ function processBoostDeduction() {
         return;
       }
 
-      userBalance += 500;
-      const durationHours = 8;
-      miningEndTime = now + (durationHours * 60 * 60 * 1000);
+      userBalance += 100;
+      const durationHours = 4;
+      const miningEndTime = Date.now() + (4 * 60 * 60 * 1000);
+
       const historyId = 'hist_' + Date.now();
 
       let updates = {};
@@ -1028,13 +1029,13 @@ function processBoostDeduction() {
       updates['users/' + userId + '/miningEndTime'] = miningEndTime;
       updates['users/' + userId + '/history/' + historyId] = {
         title: "Block Mining",
-        amount: "+500 ADI",
+        amount: "+100 ADI",
         date: new Date().toLocaleString(),
         type: "Mining Reward"
       };
 
       database.ref().update(updates).then(() => {
-        showAlert("Mined +500 ADI$ Tokens!");
+        showAlert("Mined +100 ADI$ Tokens!");
       });
     }
 
@@ -1059,7 +1060,7 @@ function processBoostDeduction() {
             document.getElementById('miningCircle').classList.remove('mining-active');
             document.getElementById('miningTimer').innerText = "Session complete. Ready to mine again!";
             if (mineBtn) {
-              mineBtn.innerText = "⛏ Start Mining (+500 ADI$)";
+              mineBtn.innerText = "⛏ Start Mining (+100 ADI$)";
               mineBtn.disabled = false;
               mineBtn.style.opacity = "1";
             }
@@ -1079,7 +1080,7 @@ function processBoostDeduction() {
             mineBtn.disabled = true;
             mineBtn.style.opacity = "0.4";
           } else {
-            mineBtn.innerText = "⛏ Start Mining (+500 ADI$)";
+            mineBtn.innerText = "⛏ Start Mining (+100 ADI$)";
             mineBtn.disabled = false;
             mineBtn.style.opacity = "1";
           }
@@ -1216,7 +1217,7 @@ function processBoostDeduction() {
       const refLink = `https://t.me/${botUsername}?start=${userId}`;
       
       if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
-        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent('Join ADI Airdrop and earn 10 ADI bonus!')}`;
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${encodeURIComponent('Join ADI Airdrop and earn 50 ADI bonus!')}`;
         window.Telegram.WebApp.openTelegramLink(shareUrl);
       } else {
         navigator.clipboard.writeText(refLink).then(() => {
@@ -1235,13 +1236,13 @@ function processBoostDeduction() {
           database.ref('users/' + userId + '/referredBy').once('value').then((snapshot) => {
             if (!snapshot.exists()) {
               database.ref('users/' + referrerId + '/balance').transaction((currentBalance) => {
-                return (currentBalance || 0) + 10;
+                return (currentBalance || 0) + 50;
               });
 
               // Track referral list under referrer
               database.ref('users/' + referrerId + '/referrals/' + userId).set({
                 username: userName,
-                reward: 10,
+                reward: 50,
                 timestamp: new Date().toLocaleString()
               });
 
